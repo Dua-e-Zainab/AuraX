@@ -1,11 +1,14 @@
+// src/components/RegisterPage.jsx
 import React, { useState } from 'react';
+import axios from 'axios';  // Import axios for making HTTP requests
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Basic validation
@@ -14,20 +17,35 @@ const LoginPage = () => {
       return;
     }
 
-    // Simulate a login API call
-    console.log('Logging in with:', { email, password });
-    // Here you would normally handle the login logic (e.g., API call)
+    try {
+      // Send login request to backend API
+      const response = await axios.post('http://localhost:5000/api/login', {
+        email,
+        password,
+      });
 
-    // Reset fields and error message
-    setEmail('');
-    setPassword('');
-    setError('');
+      // If successful, display success message
+      setSuccessMessage(response.data.message);
+
+      // Clear fields and error message
+      setEmail('');
+      setPassword('');
+      setError('');
+    } catch (err) {
+      // Handle errors
+      if (err.response) {
+        setError(err.response.data.error);
+      } else {
+        setError('An error occurred. Please try again.');
+      }
+    }
   };
 
   return (
     <div style={{ maxWidth: '300px', margin: '0 auto', padding: '20px' }}>
       <h2>Login</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
+      {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
       <form onSubmit={handleSubmit}>
         <div>
           <label>
