@@ -1,29 +1,35 @@
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import LandingPage from './components/LandingPage'; // Import the LandingPage component
+import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
-import { useEffect, useState } from 'react';
-import Heatmap from './components/Heatmap';
+import ProjectPage from './components/ProjectPage';
+import CreateProjectPage from './components/CreateProjectPage';
+import MyProjectsPage from './components/MyProjectsPage';
+//import Navbar from './components/Navbar'; // Import Navbar
+//import Footer from './components/Footer'; // Import Footer
 
-function App() {
-  const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    fetch('http://localhost:5000/api')
-      .then(response => response.json())
-      .then(data => setMessage(data.message))
-      .catch(err => console.error(err));
-  }, []);
-
+const App = () => {
   return (
-    <div>
-      <h1>Message from Backend: {message}</h1>
+    <Router>
+      {/* Navbar is included here so it appears on all pages */}
+      {/* <Navbar /> */}
+      
+      <Routes>
+        {/* Root path will load the LandingPage */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/projects" element={<ProjectPage />} />
+        <Route path="/createproject" element={<CreateProjectPage />} />
+        <Route path="/myprojects" element={<MyProjectsPage />} />
 
-      {/* Display the RegisterPage */}
-      <RegisterPage />
-
-      {/* Add the Heatmap component here */}
-      <Heatmap />
-    </div>
+      </Routes>
+      
+      {/* Footer is included here so it appears on all pages */}
+      {/* <Footer /> */}
+    </Router>
   );
-}
+};
 
 export default App;
