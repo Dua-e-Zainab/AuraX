@@ -1,13 +1,17 @@
-import React, { useEffect, useRef, useState } from 'react';
-import axios from 'axios';
-import h337 from 'heatmap.js';
+import React, { useEffect, useRef, useState } from "react";
+import axios from "axios";
+import h337 from "heatmap.js";
 
 function App() {
     const heatmapRef = useRef(null);
     const heatmapInstance = useRef(null);
-    const [hoverInfo, setHoverInfo] = useState(null);
+    const [totalClicks, setTotalClicks] = useState(0);
+    const [rageClicks, setRageClicks] = useState(0);
 
     useEffect(() => {
+        console.log("Initializing heatmap...");
+
+        // Step 1: Create heatmap instance
         heatmapInstance.current = h337.create({
             container: heatmapRef.current,
             radius: 40,
@@ -15,138 +19,126 @@ function App() {
             minOpacity: 0.2,
             blur: 0.75,
             gradient: {
-                0: 'blue',
-                0.5: 'yellow',
-                1: 'red'
-            }
+                0: "blue",
+                0.5: "yellow",
+                1: "red",
+            },
         });
 
-        const fetchData = async () => {
-            try {
-                const response = await axios.get('http://localhost:5000/api/museclicks');
-                const clickData = {};
+        // Step 2: Force clear the heatmap
+        if (heatmapInstance.current) {
+            console.log("Clearing heatmap data...");
+            heatmapInstance.current.setData({ max: 10, data: [] });
+        } else {
+            console.error("Heatmap instance is not initialized.");
+        }
 
-                response.data.forEach(({ x, y }) => {
-                    const key = `${x},${y}`;
-                    clickData[key] = (clickData[key] || 0) + 1;
-                });
+        // Step 3: Fetch backend data (optional, comment if not needed)
+        // const fetchData = async () => {
+        //     try {
+        //         const response = await axios.get("http://localhost:5000/api/museclicks");
+        //         console.log("Fetched data from backend:", response.data);
 
-                const points = Object.entries(clickData).map(([key, count]) => {
-                    const [x, y] = key.split(',').map(Number);
-                    return { x, y, value: count };
-                });
+        //         // Skip loading data if the heatmap should be clear
+        //         const points = response.data.map(({ x, y }) => ({ x, y, value: 1 }));
+        //         heatmapInstance.current.setData({ max: 10, data: points });
+        //     } catch (error) {
+        //         console.error("Error fetching data:", error);
+        //     }
+        // };
 
-                heatmapInstance.current.setData({ max: 10, data: points });
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
-        };
-
-        fetchData();
+        // // Comment out fetchData if persistent data is not required
+        // fetchData();
 
         const handleClick = async (event) => {
-            const x = event.clientX;
-            const y = event.clientY;
-            try {
-                await axios.post('http://localhost:5000/api/museclicks', { x, y });
-                heatmapInstance.current.addData({ x, y, value: 1 });
-            } catch (error) {
-                console.error('Error saving coordinates:', error);
+            // Step 4: Restrict clicks to image bounds
+            const heatmapBounds = heatmapRef.current.getBoundingClientRect();
+            const x = event.clientX - heatmapBounds.left;
+            const y = event.clientY - heatmapBounds.top;
+
+            if (x >= 0 && y >= 0 && x <= heatmapBounds.width && y <= heatmapBounds.height) {
+                try {
+                    console.log("Click registered at:", { x, y });
+                    await axios.post("http://localhost:5000/api/museclicks", { x, y });
+                    heatmapInstance.current.addData({ x, y, value: 1 });
+
+                    setTotalClicks((prev) => prev + 1);
+
+                    // Step 5: Detect rapid clicks for rage clicks
+                    const nearbyPoints = heatmapInstance.current.getData().data.filter((point) => {
+                        const distance = Math.sqrt(Math.pow(point.x - x, 2) + Math.pow(point.y - y, 2));
+                        return distance < 50 && point.value > 3;
+                    });
+
+                    if (nearbyPoints.length > 0) {
+                        setRageClicks((prev) => prev + 1);
+                    }
+                } catch (error) {
+                    console.error("Error saving click data:", error);
+                }
             }
         };
 
-        const handleMouseMove = (event) => {
-            const { clientX: x, clientY: y } = event;
-            const clickData = heatmapInstance.current.getValueAt({ x, y });
-            if (clickData) {
-                setHoverInfo({ x, y, count: clickData });
-            } else {
-                setHoverInfo(null);
-            }
-        };
-
-        window.addEventListener('click', handleClick);
-        window.addEventListener('mousemove', handleMouseMove);
+        // Step 6: Add click event listener
+        window.addEventListener("click", handleClick);
 
         return () => {
-            window.removeEventListener('click', handleClick);
-            window.removeEventListener('mousemove', handleMouseMove);
+            // Cleanup event listeners
+            window.removeEventListener("click", handleClick);
         };
     }, []);
 
     return (
-        <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
-            <h1 style={{ textAlign: 'center' }}>Muse Clicks Heatmap Demo</h1>
+        <div style={{ position: "relative", width: "100vw", height: "100vh" }}>
+            <h1 style={{ textAlign: "center" }}>Muse Clicks Heatmap Demo</h1>
 
-            {/* Hover Information for Click Counts */}
-            {hoverInfo && (
+            {/* Sidebar for Total and Rage Clicks */}
+            <aside
+                style={{
+                    position: "absolute",
+                    top: "60px",
+                    left: "20px",
+                    background: "rgba(0, 0, 0, 0.7)",
+                    color: "white",
+                    padding: "10px",
+                    borderRadius: "8px",
+                    zIndex: 2,
+                }}
+            >
+                <h3>Click Stats</h3>
+                <p>Total Clicks: {totalClicks}</p>
+                <p>Rage Clicks: {rageClicks}</p>
+            </aside>
+
+            <main
+                style={{
+                    marginLeft: "220px",
+                    padding: "20px",
+                    boxSizing: "border-box",
+                }}
+            >
+                {/* <h2>Main Content Area</h2>
+                <p>This is the main content section where users may click on different items.</p>
+                <button style={{ marginRight: "10px" }}>Button 1</button>
+                <button style={{ marginRight: "10px" }}>Button 2</button>
+                <button>Button 3</button> */}
+
+                {/* Add image with heatmap */}
                 <div
+                    ref={heatmapRef}
                     style={{
-                        position: 'absolute',
-                        top: hoverInfo.y,
-                        left: hoverInfo.x,
-                        background: 'rgba(0, 0, 0, 0.7)',
-                        color: 'white',
-                        padding: '5px',
-                        borderRadius: '5px',
-                        pointerEvents: 'none',
+                        position: "relative",
+                        width: "1400px", // Adjusted width
+                        height: "650px", // Adjusted height
+                        marginTop: "20px",
+                        backgroundImage: "url('website.jpeg')", // Replace with your image path
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        border: "2px solid #333",
+                        borderRadius: "8px",
                     }}
-                >
-                    Clicks: {hoverInfo.count}
-                </div>
-            )}
-
-            {/* Background Layout */}
-            <div style={{ position: 'absolute', width: '100%', height: '100%' }}>
-                <header
-                    style={{
-                        background: '#333',
-                        color: '#fff',
-                        padding: '10px',
-                        textAlign: 'center',
-                        fontSize: '24px',
-                    }}
-                >
-                    Website Header
-                </header>
-
-                <aside
-                    style={{
-                        position: 'absolute',
-                        top: '60px',
-                        left: '0',
-                        width: '200px',
-                        height: 'calc(100% - 60px)',
-                        backgroundColor: '#f4f4f4',
-                        padding: '20px',
-                        boxSizing: 'border-box',
-                    }}
-                >
-                    <h3>Sidebar</h3>
-                    <button style={{ marginBottom: '10px' }}>Sidebar Button 1</button>
-                    <button style={{ marginBottom: '10px' }}>Sidebar Button 2</button>
-                </aside>
-
-                <main
-                    style={{
-                        marginLeft: '220px',
-                        padding: '20px',
-                        boxSizing: 'border-box',
-                    }}
-                >
-                    <h2>Main Content Area</h2>
-                    <p>This is the main content section where users may click on different items.</p>
-                    <button style={{ marginRight: '10px' }}>Button 1</button>
-                    <button style={{ marginRight: '10px' }}>Button 2</button>
-                    <button>Button 3</button>
-                </main>
-            </div>
-
-            {/* Heatmap Overlay */}
-            <div
-                ref={heatmapRef}
-                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-            ></div>
+                ></div>
+            </main>
         </div>
     );
 }
