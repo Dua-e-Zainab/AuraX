@@ -33,22 +33,22 @@ function App() {
             console.error("Heatmap instance is not initialized.");
         }
 
-        // Step 3: Fetch backend data (optional, comment if not needed)
-        // const fetchData = async () => {
-        //     try {
-        //         const response = await axios.get("http://localhost:5000/api/museclicks");
-        //         console.log("Fetched data from backend:", response.data);
+        //Step 3: Fetch backend data (optional, comment if not needed)
+        const fetchData = async () => {
+            try {
+                const response = await axios.get("http://localhost:5001/api/museclicks");
+                console.log("Fetched data from backend:", response.data);
 
-        //         // Skip loading data if the heatmap should be clear
-        //         const points = response.data.map(({ x, y }) => ({ x, y, value: 1 }));
-        //         heatmapInstance.current.setData({ max: 10, data: points });
-        //     } catch (error) {
-        //         console.error("Error fetching data:", error);
-        //     }
-        // };
+                // Skip loading data if the heatmap should be clear
+                const points = response.data.map(({ x, y }) => ({ x, y, value: 1 }));
+                heatmapInstance.current.setData({ max: 10, data: points });
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        };
 
         // // Comment out fetchData if persistent data is not required
-        // fetchData();
+        fetchData();
 
         const handleClick = async (event) => {
             // Step 4: Restrict clicks to image bounds
@@ -59,7 +59,7 @@ function App() {
             if (x >= 0 && y >= 0 && x <= heatmapBounds.width && y <= heatmapBounds.height) {
                 try {
                     console.log("Click registered at:", { x, y });
-                    await axios.post("http://localhost:5000/api/museclicks", { x, y });
+                    await axios.post("http://localhost:5001/api/museclicks", { x, y });
                     heatmapInstance.current.addData({ x, y, value: 1 });
 
                     setTotalClicks((prev) => prev + 1);
