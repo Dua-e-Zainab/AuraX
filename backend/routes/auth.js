@@ -8,10 +8,6 @@ const router = express.Router();
 router.post('/signup', async (req, res) => {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-        return res.status(400).json({ message: 'Email and password are required.' });
-    }
-
     try {
         // Check if user already exists
         const userExists = await User.findOne({ email });

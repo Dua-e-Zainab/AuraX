@@ -81,58 +81,57 @@ const MyProjects = () => {
           </Link>
           <button
             type="button"
-            className="px-6 py-3 flex items-center space-x-1 bg-gray-200 text-gray-800 rounded shadow hover:bg-gray-300 transition"
-            onClick={() => window.location.reload()} // Quick refresh workaround
-          >
+            className="px-6 py-3 flex items-center space-x-1 bg-gray-200 text-gray-800 rounded shadow hover:bg-gray-300 transition">
             <FaSync className="text-sm" />
             <span>Refresh</span>
           </button>
         </div>
 
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {projects.map((project) => (
-              <div
-                key={project._id}
-                className="bg-white shadow-lg rounded-lg p-6 flex flex-col space-y-4"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-purple-200 rounded-full flex items-center justify-center text-purple-600">
-                    <FaUsers size={24} />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-800">
-                      {project.name}
-                    </h2>
-                    <a
-                      href={project.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-500 hover:underline"
-                    >
-                      {project.url}
-                    </a>
-                  </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {projects.map((project) => (
+            <Link
+              key={project.id}
+              to={`/overview/:id ${project.id}`}
+              className="bg-white shadow-lg rounded-lg p-6 flex flex-col space-y-4 transition hover:shadow-xl"
+            >
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-purple-200 rounded-full flex items-center justify-center text-purple-600">
+                  <FaUsers size={24} />
                 </div>
-                <div className="flex justify-between border-t pt-4 text-gray-600">
-                  <button className="flex items-center space-x-2 hover:text-purple-600">
-                    <FaCog />
-                    <span>Settings</span>
-                  </button>
-                  <button
-                    className="flex items-center space-x-2 hover:text-red-600"
-                    onClick={() => handleDelete(project._id)}
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    {project.name}
+                  </h2>
+                  <a
+                    href={project.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()} // Prevent navigation on URL click
+                    className="text-sm text-blue-500 hover:underline"
                   >
-                    <FaTrash />
-                    <span>Delete</span>
-                  </button>
+                    {project.url}
+                  </a>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+              <div className="flex justify-between border-t pt-4 text-gray-600">
+                <button
+                  className="flex items-center space-x-2 hover:text-purple-600"
+                  onClick={(e) => e.stopPropagation()} // Prevent navigation on button click
+                >
+                  <FaCog />
+                  <span>Settings</span>
+                </button>
+                <button
+                  className="flex items-center space-x-2 hover:text-red-600"
+                  onClick={(e) => e.stopPropagation()} // Prevent navigation on button click
+                >
+                  <FaTrash />
+                  <span>Delete</span>
+                </button>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );
