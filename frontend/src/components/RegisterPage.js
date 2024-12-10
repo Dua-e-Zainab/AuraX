@@ -25,16 +25,23 @@ const RegisterPage = () => {
     try {
       // Send POST request to backend signup endpoint
       const response = await axios.post('http://localhost:5000/api/auth/signup', { email, password });
-      
+    
+      // Log response for debugging (optional)
+      console.log('Registration response:', response.data);
+    
+      // Example: Use response data if needed
+      if (response.data.message) {
+        console.log('Server message:', response.data.message);
+      }
+    
       // Show success popup on successful registration
       setShowPopup(true); // Show the success popup
-
+    
       // Close the popup and redirect to login page after 3 seconds
       setTimeout(() => {
         setShowPopup(false);
         navigate('/login');
       }, 3000);
-      
     } catch (error) {
       setLoading(false);
       // Handle errors here, e.g. user already exists
@@ -43,7 +50,7 @@ const RegisterPage = () => {
       } else {
         setError('Network error. Please check your connection and try again.');
       }
-    }
+    } // <-- Closing brace for try-catch
   };
 
   return (

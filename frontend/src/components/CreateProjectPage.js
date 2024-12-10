@@ -6,14 +6,57 @@ const CreateProjectPage = () => {
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
   const [domain, setDomain] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');  // For showing errors to users
+  const [showPopup, setShowPopup] = useState(false);  // For showing popup
   const navigate = useNavigate();
 
-  const handleSave = () => {
-    console.log({ name, url, domain });
-    navigate('/projects'); // Navigate back to the Projects page
+  const handleSave = async () => {
+    // Check if all fields are filled
+    if (!name || !url || !domain) {
+      setErrorMessage('All fields are required.');
+      return;
+    }
+
+    // URL Validation
+    const urlPattern = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i;
+    if (!urlPattern.test(url)) {
+      setErrorMessage('Please enter a valid URL.');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5000/api/projects/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, url, domain }),  // Send only the project data (no token needed)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Show error message returned from backend
+        setErrorMessage(data.message || 'Something went wrong');
+        return;
+      }
+
+      setShowPopup(true); // Show success popup
+      setTimeout(() => {
+        setShowPopup(false);
+        navigate('/myprojects'); // Redirect after successful creation
+      }, 3000);
+    } catch (error) {
+      setErrorMessage('Server error, please try again later.');
+    }
   };
 
   const handleDelete = () => {
+    if (!name) {
+      setErrorMessage('Please create a project first before deleting.');
+      return;
+    }
+
     console.log('Project deleted');
     navigate('/projects'); // Navigate back to the Projects page
   };
@@ -32,6 +75,14 @@ const CreateProjectPage = () => {
               Project ID: <span className="font-semibold">8234127893</span>{' '}
               <button className="text-blue-500 underline">Copy</button>
             </p>
+
+            {/* Display Error Message */}
+            {errorMessage && (
+              <div className="text-red-600 mb-4 p-2 border border-red-600 bg-red-100 rounded">
+                {errorMessage}
+              </div>
+            )}
+
             <form className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Name</label>
@@ -55,13 +106,18 @@ const CreateProjectPage = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Domain</label>
-                <input
-                  type="text"
-                  placeholder="Enter domain"
+                <select
                   value={domain}
                   onChange={(e) => setDomain(e.target.value)}
                   className="w-full mt-1 p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
+                >
+                  <option value="">Select a domain</option>
+                  <option value="Technology">Technology</option>
+                  <option value="Health">Health</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Beauty">Beauty</option>
+                  <option value="Education">Education</option>
+                </select>
               </div>
               <div className="flex space-x-4">
                 <button
@@ -83,19 +139,52 @@ const CreateProjectPage = () => {
         </div>
 
         {/* Right Section - Background Illustration */}
-      
         <div className="flex flex-col items-center mt-1">
           <img
             src="computer.png"
             alt="Illustration of Animals"
             className="mb-8"
             style={{
-              width: '679px', 
-              height: '495px', 
-            }}/>
-          </div>
+              width: '679px',
+              height: '495px',
+            }}
+          />
         </div>
       </div>
+
+      {/* Custom Popup */}
+      {showPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg text-center relative max-w-md mx-auto">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowPopup(false)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-black"
+              aria-label="Close popup"
+            >
+              &times;
+            </button>
+    
+            {/* Icon */}
+            <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center rounded-full bg-purple-100">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                className="w-8 h-8 text-purple-600"
+              >
+                <path d="M12 0C5.4 0 0 5.4 0 12c0 6.6 5.4 12 12 12s12-5.4 12-12C24 5.4 18.6 0 12 0zm5.1 9.3l-6 6c-.3.3-.7.5-1.1.5-.4 0-.8-.2-1.1-.5l-3-3c-.3-.3-.3-.8 0-1.1s.8-.3 1.1 0l2.4 2.4 5.4-5.4c.3-.3.8-.3 1.1 0 .3.4.3.9-.1 1.1z" />
+              </svg>
+            </div>
+    
+            {/* Message */}
+            <p className="text-gray-700 text-lg">
+              Project created successfully! You can now view or manage your project.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
