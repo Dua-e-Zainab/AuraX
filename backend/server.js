@@ -2,13 +2,15 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const authRoutes = require('./routes/auth');
+const projectRoutes = require('./routes/project'); // Import the project routes
 const authRoutes = require('./routes/auth'); // Make sure this path is correct
 
-dotenv.config(); 
+dotenv.config(); // Load .env variables
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const mongoURI = process.env.MONGO_URI; 
+const mongoURI = process.env.MONGO_URI;
 
 // Middleware
 app.use(cors({
@@ -24,6 +26,11 @@ mongoose.connect(mongoURI)
     .then(() => console.log('Connected to MongoDB'))
     .catch((err) => console.log('Failed to connect to MongoDB:', err));
 
+// Use authentication routes
+app.use('/api/auth', authRoutes); // Authentication routes (login, register, etc.)
+
+// Use project routes (these may or may not need authentication)
+app.use('/api/projects', projectRoutes);
 // Use the auth routes under '/api/auth'
 app.use('/api/auth', authRoutes);  // Routes for login and signup
 

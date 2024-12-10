@@ -1,21 +1,72 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaTrash, FaCog, FaUsers, FaSync } from 'react-icons/fa';
 import Navbar1 from './Navbar1';
+import { useNavigate } from 'react-router-dom';
 
 const MyProjects = () => {
-  const projects = [
-    {
-      id: 1,
-      name: "Serendipity",
-      url: "https://serendipitybyrooj.com/",
-    },
-    {
-      id: 2,
-      name: "Serendipity",
-      url: "https://serendipitybyrooj.com/",
-    },
-  ];
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  // Retrieve userId and token from localStorage
+  const userId = localStorage.getItem('userId');
+  const token = localStorage.getItem('token');
+
+  useEffect(() => {
+    // Check if the user is logged in
+    if (!userId || !token) {
+      console.error('No userId or token found. Please log in.');
+      navigate('/login'); // Redirect to login if not logged in
+      return;
+    }
+
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/projects', {
+          headers: {
+            Authorization: `Bearer ${token}`, // Attach token in Authorization header
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch projects');
+        }
+
+        const data = await response.json();
+        console.log('Fetched projects:', data); // Debugging line
+        setProjects(data.projects); // Assuming the response returns an object with `projects` key
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, [userId, token, navigate]); // Added token and navigate to dependency array
+
+  const handleDelete = async (projectId) => {
+    // Ask for confirmation before deleting
+    if (window.confirm('Are you sure you want to delete this project?')) {
+      try {
+        const response = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`, // Include token for authorization
+          },
+        });
+
+        if (response.ok) {
+          setProjects((prevProjects) => prevProjects.filter((project) => project._id !== projectId));
+        } else {
+          console.error('Error deleting project:', await response.json());
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
+  };
 
   return (
     <div className="h-screen bg-gradient-to-br from-purple-100 to-blue-200">
