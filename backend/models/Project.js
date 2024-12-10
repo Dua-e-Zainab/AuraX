@@ -14,7 +14,7 @@ const projectSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-}, { timestamps: true });
+}, { timestamps: true }); // Automatically adds `createdAt` and `updatedAt` fields
 
 const Project = mongoose.model('Project', projectSchema);
 
