@@ -7,29 +7,25 @@ import {
   faFire,
   faPalette,
   faChartBar,
-  faUser  ,
+  faUser,
 } from "@fortawesome/free-solid-svg-icons";
 
-const Navbar = () => {
+const Navbar2 = () => {
   return (
     <nav className="bg-white shadow-sm py-4 flex items-center h-16 w-full">
       <ul className="flex justify-center space-x-20 text-gray-400 text-lg font-medium w-full mx-auto">
         {/* Overview */}
         <li>
           <NavLink
-            to="/overview/:id"
+            to="/overview"
             className={({ isActive }) =>
-              isActive
-                ? "text-purple-600 flex items-center"
-                : "hover:text-purple-600 flex items-center"
+              isActive ? "text-purple-600 flex items-center" : "hover:text-purple-600 flex items-center"
             }
           >
             <FontAwesomeIcon icon={faBriefcase} className="text-2xl mr-2" />
             Overview
-            {({ isActive }) =>
-              isActive && <div className="h-[2px] w-8 bg-purple-600 mt-1" />
-            }
           </NavLink>
+
         </li>
 
         {/* Dashboard */}
@@ -102,7 +98,7 @@ const Navbar = () => {
                 : "hover:text-purple-600 flex items-center"
             }
           >
-            <FontAwesomeIcon icon={faUser  } className="text-2xl mr-2" />
+            <FontAwesomeIcon icon={faUser} className="text-2xl mr-2" />
             Profile
           </NavLink>
         </li>
@@ -111,4 +107,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default Navbar2;
