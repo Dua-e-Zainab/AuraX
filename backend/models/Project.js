@@ -1,3 +1,4 @@
+// models/Project.js
 const mongoose = require('mongoose');
 
 const projectSchema = new mongoose.Schema({
@@ -8,13 +9,18 @@ const projectSchema = new mongoose.Schema({
     url: {
         type: String,
         required: true,
-        unique: true, // Ensure URL is unique
+        unique: true,
     },
     domain: {
         type: String,
         required: true,
     },
-}, { timestamps: true }); // Automatically adds `createdAt` and `updatedAt` fields
+    owner: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User', // Reference to the User model
+        required: true, // Ensure each project has an owner
+    },
+}, { timestamps: true });
 
 const Project = mongoose.model('Project', projectSchema);
 

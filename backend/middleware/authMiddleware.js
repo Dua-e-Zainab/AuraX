@@ -1,20 +1,24 @@
 const jwt = require('jsonwebtoken');
 
-const authMiddleware = (req, res, next) => {
-    const token = req.headers['authorization']?.split(' ')[1];  // Get token from 'Authorization' header
+// Middleware to check token validity
+const authenticateToken = (req, res, next) => {
+    const token = req.headers['authorization']?.split(' ')[1]; // Extract token from "Bearer <token>"
 
     if (!token) {
-        return res.status(401).json({ message: 'No token provided, authentication required.' });
+        console.log('Token missing or invalid');
+        return res.status(401).json({ message: 'Token is missing or invalid' });
     }
 
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded; // Attach user data to the request object
-        next(); // Proceed to the next middleware/route handler
-    } catch (error) {
-        console.error(error);
-        return res.status(401).json({ message: 'Invalid token, authentication failed.' });
-    }
+    jwt.verify(token, 'yo0aUAPPC6', (err, user) => {
+        if (err) {
+            console.log('Invalid token');
+            return res.status(403).json({ message: 'Invalid token' });
+        }
+        req.user = user; // Pass user data to the next middleware
+        next();
+    });
 };
 
-module.exports = authMiddleware;
+
+
+module.exports = authenticateToken;  // Export the middleware
