@@ -46,7 +46,7 @@ const Navbar2 = () => {
         {/* Heatmaps */}
         <li>
           <NavLink
-            to="/heatmaps"
+            to="/heatmap"
             className={({ isActive }) =>
               isActive
                 ? "text-purple-600 flex items-center"
