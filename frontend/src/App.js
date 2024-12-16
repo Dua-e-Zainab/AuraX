@@ -28,12 +28,12 @@ const App = () => {
         <Route path="/overview/:id" element={<OverviewPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
 
-      </Routes>
-      
-      {/* Footer is included here so it appears on all pages */}
-      {/* <Footer /> */}
-    </Router>
-  );
-};
+        </Routes>
+
+        {/* Add a link here */}
+        <a href="/learn-react">Learn React</a>
+        </Router>
+          );
+        };
 
 export default App;
