@@ -1,11 +1,11 @@
 import React from 'react';
-import Navbar from './Navbar.js';
-import Footer from './Footer';
+import Navbar3 from './Navbar3.js';
+import Footer from './Footer.js';
 
 const LandingPage = () => {
   return (
     <div className="font-sans bg-[#f4f7fe] text-gray-800">
-      <Navbar />
+      <Navbar3 />
 
       {/* Hero Section */}
       <section className="flex flex-col md:flex-row justify-between items-center py-16 px-8 md:px-20 bg-gradient-to-br from-purple-50 to-blue-100 rounded-b-3xl text-center md:text-left">

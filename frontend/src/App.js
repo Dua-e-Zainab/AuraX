@@ -8,6 +8,7 @@ import CreateProjectPage from './components/CreateProjectPage';
 import MyProjectsPage from './components/MyProjectsPage';
 import OverviewPage from './components/OverviewPage';
 import Dashboard from './components/Dashboard.js';
+import NewPage from './components/NewPage.js';
 //import Navbar from './components/Navbar'; // Import Navbar
 //import Footer from './components/Footer'; // Import Footer
 
@@ -27,6 +28,7 @@ const App = () => {
         <Route path="/myprojects" element={<MyProjectsPage />} />
         <Route path="/overview/:id" element={<OverviewPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/NewPage" element={<NewPage />} />
 
       </Routes>
       
