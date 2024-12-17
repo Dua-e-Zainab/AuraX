@@ -9,6 +9,7 @@ import MyProjectsPage from './components/MyProjectsPage';
 import OverviewPage from './components/OverviewPage';
 import Dashboard from './components/Dashboard.js';
 import NewPage from './components/NewPage.js';
+import HeatmapPage from './components/Heatmap.js';
 //import Navbar from './components/Navbar'; // Import Navbar
 //import Footer from './components/Footer'; // Import Footer
 
@@ -30,6 +31,7 @@ const App = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/NewPage" element={<NewPage />} />
 
+        <Route path="/heatmap" element={<HeatmapPage />} />
       </Routes>
       
       {/* Footer is included here so it appears on all pages */}
