@@ -29,9 +29,11 @@ const App = () => {
         <Route path="/myprojects" element={<MyProjectsPage />} />
         <Route path="/overview/:id" element={<OverviewPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
+
         <Route path="/NewPage" element={<NewPage />} />
 
         <Route path="/heatmap" element={<HeatmapPage />} />
+        <a href="/learn-react">Learn React</a>
       </Routes>
       
       {/* Footer is included here so it appears on all pages */}
@@ -39,5 +41,6 @@ const App = () => {
     </Router>
   );
 };
+
 
 export default App;
