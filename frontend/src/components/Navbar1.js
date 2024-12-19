@@ -6,7 +6,7 @@ const Navbar = () => {
     <nav className="navbar1">
       <header className="flex justify-between w-full px-8 py-4 text-indigo-900 bg-white">
         {/* Make Logo Clickable */}
-        <Link to="/">
+        <Link to="/NewPage">
           <img src="Logo - AuraX 22.png" alt="AuraX Logo" className="h-18" />
         </Link>
         

@@ -106,4 +106,5 @@ router.put('/:id', async (req, res) => {
 
 
 
+// Export the router to be used in server.js
 module.exports = router;
