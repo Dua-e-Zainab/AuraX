@@ -2,22 +2,17 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const authRoutes = require('./routes/auth'); 
-const projectRoutes = require('./routes/project');
-const trackRoutes = require('./routes/track'); 
+const path = require('path'); // Add this for serving static files
 
-dotenv.config(); // Load .env variables
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const mongoURI = process.env.MONGO_URI;
 
 // Middleware
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:5500'],
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+app.use(cors());
 app.use(express.json());
 
 // MongoDB connection
@@ -25,14 +20,26 @@ mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log('MongoDB connection error:', err));
 
-// Routes
+// Your API routes
+const authRoutes = require('./routes/auth'); 
+const projectRoutes = require('./routes/project');
+const trackRoutes = require('./routes/track');
+
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/track', trackRoutes);
 
-// Root route
-app.get('/', (req, res) => {
-  res.send('Welcome to the Express Server!');
+// Serve static files from the React build folder
+app.use(express.static(path.join(__dirname, 'build')));
+
+// Handle all other routes by serving the React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
+app.use((req, res, next) => {
+  res.setHeader("Content-Security-Policy", "default-src 'self'; frame-src 'self';");
+  next();
 });
 
 // Start the server

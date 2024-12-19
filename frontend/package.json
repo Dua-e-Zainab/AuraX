@@ -2,6 +2,7 @@
   "name": "uiuxanalysis",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://127.0.0.1:5500",
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.7.1",
     "@fortawesome/free-brands-svg-icons": "^6.6.0",
@@ -22,6 +23,7 @@
     "react-router-dom": "^6.28.0",
     "react-scripts": "^5.0.1",
     "ua-parser-js": "^2.0.0",
+    "uuid": "^11.0.3",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
