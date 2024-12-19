@@ -25,7 +25,11 @@ mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.log('MongoDB connection error:', err));
 
-// Routes
+// Your API routes
+const authRoutes = require('./routes/auth'); 
+const projectRoutes = require('./routes/project');
+const trackRoutes = require('./routes/track');
+
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes); // Use the project routes with authentication
 app.use('/api/track', trackRoutes);  // Use track routes (if needed)

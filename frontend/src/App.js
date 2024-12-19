@@ -10,8 +10,9 @@ import OverviewPage from './components/OverviewPage';
 import Dashboard from './components/Dashboard.js';
 import NewPage from './components/NewPage.js';
 import HeatmapPage from './components/Heatmap.js';
-//import Navbar from './components/Navbar'; // Import Navbar
-//import Footer from './components/Footer'; // Import Footer
+
+// Import Layout component
+//import Layout from './components/Layout';
 
 const App = () => {
   return (
