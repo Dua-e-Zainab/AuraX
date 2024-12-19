@@ -4,7 +4,7 @@ import Navbar2 from "./Navbar2.js";
 
 const HeatmapPage = () => {
   const [heatmapData, setHeatmapData] = useState([]); // Heatmap points
-  const [rankedClicks, setRankedClicks] = useState([]); // Ranked clicks
+  const [setRankedClicks] = useState([]); // Ranked clicks
   const [totalClicks, setTotalClicks] = useState(0); // Total clicks
   const [iframeLoaded, setIframeLoaded] = useState(false); // Iframe loaded state
   const iframeRef = useRef(null);
@@ -13,25 +13,35 @@ const HeatmapPage = () => {
   // Fetch heatmap and ranked clicks data
   const fetchHeatmapData = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/track/heatmap/7hf3b7nh8`);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/track/heatmap/7hf3b7nh8`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+  
       const data = await response.json();
-
+  
       if (data.success) {
         const transformedData = data.data.map((point) => ({
           x: point.x,
           y: point.y,
           value: point.intensity,
         }));
-
+  
         const total = transformedData.reduce((sum, point) => sum + point.value, 0);
         setTotalClicks(total);
         setHeatmapData(transformedData);
         setRankedClicks(data.rankedClicks || []);
+      } else {
+        console.error("Error fetching heatmap data:", data.message);
       }
     } catch (err) {
       console.error("Failed to fetch heatmap data:", err);
     }
   }, []);
+  
 
   // Initialize heatmap
   const initializeHeatmap = useCallback(() => {
@@ -149,7 +159,7 @@ const HeatmapPage = () => {
             {/* Iframe */}
             <iframe
               ref={iframeRef}
-              src="/iframe.html"
+              src="http://127.0.0.1:5500"
               title="Heatmap Content"
               className="w-full h-full absolute top-0 left-0 z-0"
               onLoad={() => setIframeLoaded(true)}
