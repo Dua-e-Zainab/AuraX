@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -30,14 +29,14 @@ const LoginPage = () => {
         console.log('API Response:', data);
 
         if (response.ok) {
-            localStorage.setItem('token', data.token);
-            navigate('/projects');
+            localStorage.setItem('token', data.token);  // Store token in localStorage
+            navigate('/projects');  // Redirect to projects page on successful login
         } else {
-            setError(data.message || 'Login failed. Please try again.');
+            setError(data.message || 'Login failed. Please try again.');  // Display error message if login fails
         }
     } catch (error) {
         console.error('Error logging in:', error);
-        setError('Something went wrong. Please try again later.');
+        setError('Something went wrong. Please try again later.');  // Handle unexpected errors
     } finally {
         setLoading(false);
     }
@@ -55,7 +54,6 @@ const LoginPage = () => {
           <h2 className="text-2xl font-bold text-purple-700">Log in</h2>
         </div>
         <form onSubmit={handleSubmit}>
-          {/* Google Sign-In button (optional) */}
           <button
             type="button"
             className="flex items-center justify-center w-full py-2 border border-purple-400 rounded text-gray-700 font-semibold hover:bg-gray-100 transition"
@@ -68,14 +66,12 @@ const LoginPage = () => {
             Sign in with Google
           </button>
 
-          {/* Horizontal Divider */}
           <div className="flex items-center justify-center mt-6 mb-4">
             <hr className="flex-1 border-t border-purple-400" />
             <span className="mx-4 text-purple-600">or login with email</span>
             <hr className="flex-1 border-t border-purple-400" />
           </div>
 
-          {/* Email input */}
           <div className="mb-4 text-left">
             <label className="block text-purple-700 font-medium">Email Address</label>
             <input
@@ -88,7 +84,6 @@ const LoginPage = () => {
             />
           </div>
 
-          {/* Password input */}
           <div className="mb-4 text-left">
             <label className="block text-purple-700 font-medium">Password</label>
             <input
@@ -101,7 +96,6 @@ const LoginPage = () => {
             />
           </div>
 
-          {/* Remember Me Checkbox */}
           <div className="flex justify-between items-center mb-6 text-sm text-purple-600">
             <label className="flex items-center">
               <input
@@ -115,24 +109,21 @@ const LoginPage = () => {
             <Link to="/forgot-password" className="hover:underline">Forgot password?</Link>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             className={`w-full py-3 mt-4 rounded bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold hover:from-blue-600 hover:to-purple-600 transition ${loading ? 'bg-gray-500 cursor-not-allowed' : ''}`}
-            disabled={loading} // Disable button when loading
+            disabled={loading}
           >
             {loading ? 'Logging in...' : 'Submit'}
           </button>
         </form>
 
-        {/* Error Message Display */}
         {error && (
           <p className="mt-4 text-red-500 text-sm">
             {error}
           </p>
         )}
 
-        {/* Register Link */}
         <p className="mt-6 text-sm text-purple-700">
           Don’t have an account? <Link to="/register" className="font-semibold hover:underline">Register yourself now</Link>
         </p>

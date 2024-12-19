@@ -12,12 +12,16 @@ const MyProjects = () => {
     useEffect(() => {
         const fetchProjects = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/projects');
-
+                const response = await fetch('http://localhost:5000/api/projects', {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`, // Include token
+                    },
+                });
+    
                 if (!response.ok) {
                     throw new Error('Failed to fetch projects');
                 }
-
+    
                 const data = await response.json();
                 setProjects(data.projects);
             } catch (error) {
@@ -26,15 +30,18 @@ const MyProjects = () => {
                 setLoading(false);
             }
         };
-
+    
         fetchProjects();
     }, []);
-
+    
     const handleDelete = async (projectId) => {
         if (window.confirm('Are you sure you want to delete this project?')) {
             try {
                 const response = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
                     method: 'DELETE',
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    },
                 });
 
                 if (response.ok) {
@@ -51,42 +58,40 @@ const MyProjects = () => {
     };
 
     const handleEditClick = (project) => {
-        setCurrentProject(project); // Set the project being edited
-        setIsEditModalOpen(true); // Open the modal
+        setCurrentProject(project);
+        setIsEditModalOpen(true);
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setCurrentProject((prev) => ({ ...prev, [name]: value }));
     };
 
     const handleEditSubmit = async (e) => {
         e.preventDefault();
-        
-        console.log('Editing project with ID:', currentProject._id); // Make sure the ID is correct
-    
         try {
             const response = await fetch(`http://localhost:5000/api/projects/${currentProject._id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
                 body: JSON.stringify(currentProject),
             });
-    
+
             if (response.ok) {
                 setProjects((prevProjects) =>
                     prevProjects.map((project) =>
                         project._id === currentProject._id ? currentProject : project
                     )
                 );
-                setIsEditModalOpen(false); // Close the modal
+                setIsEditModalOpen(false);
             } else {
                 console.error('Failed to update project');
             }
         } catch (error) {
             console.error('Error updating project:', error);
         }
-    };
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setCurrentProject((prev) => ({ ...prev, [name]: value }));
     };
 
     return (
@@ -111,8 +116,8 @@ const MyProjects = () => {
                 </div>
 
                 {loading ? (
-                    <p>Loading projects...</p>
-                ) : (
+                    <p className="text-center text-lg text-purple-700 font-medium">Loading projects...</p>
+                ) : projects.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {projects.map((project) => (
                             <div
@@ -155,6 +160,13 @@ const MyProjects = () => {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                ) : (
+                    <div className="text-left mt-6">
+                        <h2 className="text-lg font-bold text-purple-700">No Projects Found</h2>
+                        <p className="text-gray-600 mt-2">
+                            It looks like you haven’t created any projects yet. Start by creating one now!
+                        </p>
                     </div>
                 )}
             </div>

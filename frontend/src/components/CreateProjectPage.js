@@ -24,13 +24,21 @@ const CreateProjectPage = () => {
       return;
     }
 
+    // Get the token from localStorage
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setErrorMessage('You must be logged in to create a project.');
+      return;
+    }
+
     try {
       const response = await fetch('http://localhost:5000/api/projects/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // Add the token to the header
         },
-        body: JSON.stringify({ name, url, domain }),  // Send only the project data (no token needed)
+        body: JSON.stringify({ name, url, domain }),  // Send only the project data (no token needed in the body)
       });
 
       const data = await response.json();
