@@ -8,94 +8,67 @@ const MyProjects = () => {
     const [loading, setLoading] = useState(true);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [currentProject, setCurrentProject] = useState(null); // Holds project being edited
-    const [errorMessage, setErrorMessage] = useState('');
-    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchProjects = async () => {
-            const token = localStorage.getItem('token'); // Get token from localStorage
-
-            if (!token) {
-                setErrorMessage('You must be logged in to view your projects.');
-                setLoading(false);
-                return;
-            }
-
             try {
                 const response = await fetch('http://localhost:5000/api/projects', {
-                    method: 'GET',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`, // Attach the token here
+                        Authorization: `Bearer ${localStorage.getItem('token')}`, // Include token
                     },
                 });
-
+    
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    setErrorMessage(errorData.message || 'Failed to fetch projects');
-                    throw new Error(errorData.message || 'Failed to fetch projects');
+                    throw new Error('Failed to fetch projects');
                 }
-
+    
                 const data = await response.json();
                 setProjects(data.projects);
             } catch (error) {
                 console.error('Error fetching projects:', error);
-                setErrorMessage('Something went wrong while fetching projects.');
             } finally {
                 setLoading(false);
             }
         };
-
+    
         fetchProjects();
     }, []);
-
+    
     const handleDelete = async (projectId) => {
-        const isConfirmed = window.confirm('Are you sure you want to delete this project?');
-        if (!isConfirmed) return;
 
-        console.log(`Attempting to delete project with ID: ${projectId}`);
-        const token = localStorage.getItem('token');
-
-        try {
-            const response = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to delete project');
+                if (response.ok) {
+                    setProjects((prevProjects) =>
+                        prevProjects.filter((project) => project._id !== projectId)
+                    );
+                } else {
+                    console.error('Failed to delete project');
+                }
+            } catch (error) {
+                console.error('Error deleting project:', error);
             }
 
-            // Remove the deleted project from the state
-            setProjects((prevProjects) => prevProjects.filter((project) => project._id !== projectId));
-
-            // Show success popup
-            alert('Project has been deleted successfully!');
-            console.log('Project deleted successfully');
-        } catch (error) {
-            console.error('Failed to delete project:', error);
-            alert('Error deleting project: ' + error.message);
         }
     };
 
     const handleEditClick = (project) => {
-        setCurrentProject(project); // Set the project being edited
-        setIsEditModalOpen(true); // Open the modal
+        setCurrentProject(project);
+        setIsEditModalOpen(true);
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setCurrentProject((prev) => ({ ...prev, [name]: value }));
     };
 
     const handleEditSubmit = async (e) => {
         e.preventDefault();
-
-        console.log('Editing project with ID:', currentProject._id); // Make sure the ID is correct
 
         try {
             const response = await fetch(`http://localhost:5000/api/projects/${currentProject._id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
                 body: JSON.stringify(currentProject),
             });
@@ -106,18 +79,13 @@ const MyProjects = () => {
                         project._id === currentProject._id ? currentProject : project
                     )
                 );
-                setIsEditModalOpen(false); // Close the modal
+                setIsEditModalOpen(false);
             } else {
                 console.error('Failed to update project');
             }
         } catch (error) {
             console.error('Error updating project:', error);
         }
-    };
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setCurrentProject((prev) => ({ ...prev, [name]: value }));
     };
 
     return (
@@ -142,10 +110,7 @@ const MyProjects = () => {
                 </div>
 
                 {loading ? (
-                    <p>Loading projects...</p>
-                ) : errorMessage ? (
-                    <p className="text-red-500">{errorMessage}</p>
-                ) : (
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {projects.map((project) => (
                             <div
@@ -187,6 +152,8 @@ const MyProjects = () => {
                             </div>
                         ))}
                     </div>
+
+
                 )}
             </div>
 
