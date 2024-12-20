@@ -7,21 +7,21 @@ const MyProjects = () => {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [currentProject, setCurrentProject] = useState(null); // Holds project being edited
+    const [currentProject, setCurrentProject] = useState(null);
 
     useEffect(() => {
         const fetchProjects = async () => {
             try {
                 const response = await fetch('http://localhost:5000/api/projects', {
                     headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`, // Include token
+                        Authorization: `Bearer ${localStorage.getItem('token')}`,
                     },
                 });
-    
+
                 if (!response.ok) {
                     throw new Error('Failed to fetch projects');
                 }
-    
+
                 const data = await response.json();
                 setProjects(data.projects);
             } catch (error) {
@@ -30,30 +30,28 @@ const MyProjects = () => {
                 setLoading(false);
             }
         };
-    
+
         fetchProjects();
     }, []);
-    
-    const handleDelete = async (projectId) => {
-        if (window.confirm('Are you sure you want to delete this project?')) {
-            try {
-                const response = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`,
-                    },
-                });
 
-                if (response.ok) {
-                    setProjects((prevProjects) =>
-                        prevProjects.filter((project) => project._id !== projectId)
-                    );
-                } else {
-                    console.error('Failed to delete project');
-                }
-            } catch (error) {
-                console.error('Error deleting project:', error);
+    const handleDelete = async (projectId) => {
+        try {
+            const response = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+            });
+
+            if (response.ok) {
+                setProjects((prevProjects) =>
+                    prevProjects.filter((project) => project._id !== projectId)
+                );
+            } else {
+                console.error('Failed to delete project');
             }
+        } catch (error) {
+            console.error('Error deleting project:', error);
         }
     };
 
@@ -69,6 +67,7 @@ const MyProjects = () => {
 
     const handleEditSubmit = async (e) => {
         e.preventDefault();
+
         try {
             const response = await fetch(`http://localhost:5000/api/projects/${currentProject._id}`, {
                 method: 'PUT',
@@ -116,8 +115,8 @@ const MyProjects = () => {
                 </div>
 
                 {loading ? (
-                    <p className="text-center text-lg text-purple-700 font-medium">Loading projects...</p>
-                ) : projects.length > 0 ? (
+                    <p>Loading projects...</p>
+                ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {projects.map((project) => (
                             <div
@@ -159,17 +158,9 @@ const MyProjects = () => {
                             </div>
                         ))}
                     </div>
-                ) : (
-                    <div className="text-left mt-6">
-                        <h2 className="text-lg font-bold text-purple-700">No Projects Found</h2>
-                        <p className="text-gray-600 mt-2">
-                            It looks like you haven’t created any projects yet. Start by creating one now!
-                        </p>
-                    </div>
                 )}
             </div>
 
-            {/* Edit Modal */}
             {isEditModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white shadow-2xl rounded-lg p-8 w-96">
@@ -229,4 +220,3 @@ const MyProjects = () => {
 };
 
 export default MyProjects;
-

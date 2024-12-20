@@ -1,7 +1,4 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { GoogleOAuthProvider } from '@react-oauth/google'; // Import GoogleOAuthProvider
-import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import ProjectPage from './components/ProjectPage';
