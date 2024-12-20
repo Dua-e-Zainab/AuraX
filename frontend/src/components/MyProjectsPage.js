@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaTrash, FaUsers, FaSync, FaEdit } from 'react-icons/fa';
 import Navbar1 from './Navbar1';
 
@@ -22,7 +22,6 @@ const MyProjects = () => {
             }
 
             try {
-                const response = await fetch('http://localhost:5000/api/projects');
                 const response = await fetch('http://localhost:5000/api/projects', {
                     method: 'GET',
                     headers: {
@@ -51,16 +50,8 @@ const MyProjects = () => {
     }, []);
 
     const handleDelete = async (projectId) => {
-        if (window.confirm('Are you sure you want to delete this project?')) {
-            try {
-                const response = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
-                    method: 'DELETE',
-                });
-        // Confirm before deleting the project
         const isConfirmed = window.confirm('Are you sure you want to delete this project?');
-        if (!isConfirmed) {
-            return; // If the user cancels, do nothing
-        }
+        if (!isConfirmed) return;
 
         console.log(`Attempting to delete project with ID: ${projectId}`);
         const token = localStorage.getItem('token');
@@ -79,7 +70,7 @@ const MyProjects = () => {
             }
 
             // Remove the deleted project from the state
-            setProjects(prevProjects => prevProjects.filter(project => project._id !== projectId));
+            setProjects((prevProjects) => prevProjects.filter((project) => project._id !== projectId));
 
             // Show success popup
             alert('Project has been deleted successfully!');
@@ -97,9 +88,9 @@ const MyProjects = () => {
 
     const handleEditSubmit = async (e) => {
         e.preventDefault();
-        
+
         console.log('Editing project with ID:', currentProject._id); // Make sure the ID is correct
-    
+
         try {
             const response = await fetch(`http://localhost:5000/api/projects/${currentProject._id}`, {
                 method: 'PUT',
@@ -108,7 +99,7 @@ const MyProjects = () => {
                 },
                 body: JSON.stringify(currentProject),
             });
-    
+
             if (response.ok) {
                 setProjects((prevProjects) =>
                     prevProjects.map((project) =>
@@ -152,6 +143,8 @@ const MyProjects = () => {
 
                 {loading ? (
                     <p>Loading projects...</p>
+                ) : errorMessage ? (
+                    <p className="text-red-500">{errorMessage}</p>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {projects.map((project) => (
@@ -164,9 +157,7 @@ const MyProjects = () => {
                                         <FaUsers size={24} />
                                     </div>
                                     <div>
-                                        <h2 className="text-xl font-semibold text-gray-800">
-                                            {project.name}
-                                        </h2>
+                                        <h2 className="text-xl font-semibold text-gray-800">{project.name}</h2>
                                         <a
                                             href={project.url}
                                             target="_blank"
@@ -193,60 +184,9 @@ const MyProjects = () => {
                                         <span>Delete</span>
                                     </button>
                                 </div>
-                    <>
-                        {projects.length === 0 ? (
-                            <p>No projects found. Start by creating a new project!</p>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {projects.map((project) => (
-                                    <div
-                                        key={project._id}
-                                        className="bg-white shadow-lg rounded-lg p-6 flex flex-col space-y-4 transition hover:shadow-xl cursor-pointer"
-                                        onClick={() => handleProjectClick(project._id)}
-                                    >
-                                        <div className="flex items-center space-x-4">
-                                            <div className="w-12 h-12 bg-purple-200 rounded-full flex items-center justify-center text-purple-600">
-                                                <FaUsers size={24} />
-                                            </div>
-                                            <div>
-                                                <h2 className="text-xl font-semibold text-gray-800">
-                                                    {project.name}
-                                                </h2>
-                                                <a
-                                                    href={project.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-sm text-blue-500 hover:underline"
-                                                >
-                                                    {project.url}
-                                                </a>
-                                            </div>
-                                        </div>
-                                        <div className="flex justify-between border-t pt-4 text-gray-600">
-                                            <button
-                                                className="flex items-center space-x-2 hover:text-purple-600"
-                                                onClick={(e) => e.stopPropagation()} 
-                                            >
-                                                <FaCog />
-                                                <span>Settings</span>
-                                            </button>
-                                            <button
-                                                className="flex items-center space-x-2 hover:text-red-600"
-                                                onClick={(e) => {
-                                                    e.preventDefault(); 
-                                                    e.stopPropagation(); 
-                                                    handleDelete(project._id); 
-                                                }}
-                                            >
-                                                <FaTrash />
-                                                <span>Delete</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
                             </div>
-                        )}
-                    </>
+                        ))}
+                    </div>
                 )}
             </div>
 
@@ -254,14 +194,10 @@ const MyProjects = () => {
             {isEditModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white shadow-2xl rounded-lg p-8 w-96">
-                        <h2 className="text-xl font-semibold mb-4 text-center text-gray-800">
-                            Edit Project
-                        </h2>
+                        <h2 className="text-xl font-semibold mb-4 text-center text-gray-800">Edit Project</h2>
                         <form onSubmit={handleEditSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Project Name
-                                </label>
+                                <label className="block text-sm font-medium text-gray-700">Project Name</label>
                                 <input
                                     type="text"
                                     name="name"
@@ -271,9 +207,7 @@ const MyProjects = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Project URL
-                                </label>
+                                <label className="block text-sm font-medium text-gray-700">Project URL</label>
                                 <input
                                     type="url"
                                     name="url"
@@ -283,9 +217,7 @@ const MyProjects = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Project Domain
-                                </label>
+                                <label className="block text-sm font-medium text-gray-700">Project Domain</label>
                                 <input
                                     type="text"
                                     name="domain"
@@ -318,3 +250,4 @@ const MyProjects = () => {
 };
 
 export default MyProjects;
+

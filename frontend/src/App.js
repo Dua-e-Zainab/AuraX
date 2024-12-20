@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import LandingPage from './components/LandingPage'; // Import the LandingPage component
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
@@ -10,9 +10,8 @@ import OverviewPage from './components/OverviewPage';
 import Dashboard from './components/Dashboard.js';
 import NewPage from './components/NewPage.js';
 import HeatmapPage from './components/Heatmap.js';
-
-// Import Layout component
-//import Layout from './components/Layout';
+//import Navbar from './components/Navbar'; // Import Navbar
+//import Footer from './components/Footer'; // Import Footer
 
 const App = () => {
   return (
@@ -30,18 +29,15 @@ const App = () => {
         <Route path="/myprojects" element={<MyProjectsPage />} />
         <Route path="/overview/:id" element={<OverviewPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
-
         <Route path="/NewPage" element={<NewPage />} />
-
         <Route path="/heatmap" element={<HeatmapPage />} />
-        <a href="/learn-react">Learn React</a>
       </Routes>
-      
-      {/* Footer is included here so it appears on all pages */}
+
+      {/* Footer and any external links should be outside of the Routes */}
+      <Link to="/learn-react">Learn React</Link>
       {/* <Footer /> */}
     </Router>
   );
 };
-
 
 export default App;
