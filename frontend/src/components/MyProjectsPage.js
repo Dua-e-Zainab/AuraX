@@ -35,18 +35,23 @@ const MyProjects = () => {
     }, []);
     
     const handleDelete = async (projectId) => {
+        try {
+            const response = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`, // Include token
+                },
+            });
 
-                if (response.ok) {
-                    setProjects((prevProjects) =>
-                        prevProjects.filter((project) => project._id !== projectId)
-                    );
-                } else {
-                    console.error('Failed to delete project');
-                }
-            } catch (error) {
-                console.error('Error deleting project:', error);
+            if (response.ok) {
+                setProjects((prevProjects) =>
+                    prevProjects.filter((project) => project._id !== projectId)
+                );
+            } else {
+                console.error('Failed to delete project');
             }
-
+        } catch (error) {
+            console.error('Error deleting project:', error);
         }
     };
 
@@ -110,7 +115,8 @@ const MyProjects = () => {
                 </div>
 
                 {loading ? (
-
+                    <div>Loading...</div> // Show a loading message or spinner while data is being fetched
+                ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {projects.map((project) => (
                             <div
@@ -152,8 +158,6 @@ const MyProjects = () => {
                             </div>
                         ))}
                     </div>
-
-
                 )}
             </div>
 
@@ -217,4 +221,3 @@ const MyProjects = () => {
 };
 
 export default MyProjects;
-

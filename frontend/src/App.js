@@ -1,4 +1,7 @@
 import React from 'react';
+import { GoogleOAuthProvider } from '@react-oauth/google'; // Import GoogleOAuthProvider
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'; // Import required components from react-router-dom
+
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import ProjectPage from './components/ProjectPage';
@@ -8,18 +11,16 @@ import OverviewPage from './components/OverviewPage';
 import Dashboard from './components/Dashboard.js';
 import NewPage from './components/NewPage.js';
 import HeatmapPage from './components/Heatmap.js';
-// import Navbar from './components/Navbar'; // Import Navbar
-// import Footer from './components/Footer'; // Import Footer
+import LandingPage from './components/LandingPage'; // Ensure LandingPage is imported
 
 const App = () => {
   return (
-
     // Wrap the entire application with GoogleOAuthProvider
     <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
       <Router>
-        {/* Navbar is included here so it appears on all pages */}
+        {/* Navbar can be added here if you wish */}
         {/* <Navbar /> */}
-        
+
         <Routes>
           {/* Root path will load the LandingPage */}
           <Route path="/" element={<LandingPage />} />
@@ -32,8 +33,11 @@ const App = () => {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/heatmap" element={<HeatmapPage />} />
         </Routes>
+
+        {/* External links can be placed outside of Routes */}
+        <Link to="/learn-react">Learn React</Link>
         
-        {/* Footer is included here so it appears on all pages */}
+        {/* Footer and any global components can be added here */}
         {/* <Footer /> */}
       </Router>
     </GoogleOAuthProvider>
@@ -41,34 +45,3 @@ const App = () => {
 };
 
 export default App;
-
-    <Router>
-      {/* Navbar is included here so it appears on all pages */}
-      {/* <Navbar /> */}
-      
-      <Routes>
-        {/* Root path will load the LandingPage */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/projects" element={<ProjectPage />} />
-        <Route path="/createproject" element={<CreateProjectPage />} />
-        <Route path="/myprojects" element={<MyProjectsPage />} />
-        <Route path="/overview/:id" element={<OverviewPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/NewPage" element={<NewPage />} />
-        <Route path="/heatmap" element={<HeatmapPage />} />
-      </Routes>
-
-      {/* Footer and any external links should be outside of the Routes */}
-      <Link to="/learn-react">Learn React</Link>
-      {/* <Footer /> */}
-
-      {/* If you need the Learn React link, place it outside of Routes */}
-      <a href="/learn-react">Learn React</a>
-    </Router>
-  );
-};
-
-export default App;
-
