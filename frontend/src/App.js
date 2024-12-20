@@ -10,8 +10,8 @@ import OverviewPage from './components/OverviewPage';
 import Dashboard from './components/Dashboard.js';
 import NewPage from './components/NewPage.js';
 import HeatmapPage from './components/Heatmap.js';
-//import Navbar from './components/Navbar'; // Import Navbar
-//import Footer from './components/Footer'; // Import Footer
+// import Navbar from './components/Navbar'; // Import Navbar
+// import Footer from './components/Footer'; // Import Footer
 
 const App = () => {
   return (
@@ -29,18 +29,17 @@ const App = () => {
         <Route path="/myprojects" element={<MyProjectsPage />} />
         <Route path="/overview/:id" element={<OverviewPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
-
         <Route path="/NewPage" element={<NewPage />} />
-
         <Route path="/heatmap" element={<HeatmapPage />} />
-        <a href="/learn-react">Learn React</a>
       </Routes>
       
       {/* Footer is included here so it appears on all pages */}
       {/* <Footer /> */}
+
+      {/* If you need the Learn React link, place it outside of Routes */}
+      <a href="/learn-react">Learn React</a>
     </Router>
   );
 };
-
 
 export default App;
