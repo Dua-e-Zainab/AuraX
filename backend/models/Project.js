@@ -15,6 +15,8 @@ const projectSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    creatorID: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Reference to User
+}, { timestamps: true }); // Automatically adds `createdAt` and `updatedAt` fields
     owner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User', // Reference to the User model
