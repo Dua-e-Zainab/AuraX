@@ -85,6 +85,26 @@ router.delete('/:projectId', authenticateToken, async (req, res) => {
     }
 });
 
+// PUT route to update a project
+router.put('/:id', async (req, res) => {
+    const { id } = req.params; // Extract project ID from the URL
+    const { name, url, domain } = req.body;
+
+    try {
+        const project = await Project.findByIdAndUpdate(id, { name, url, domain }, { new: true });
+
+        if (!project) {
+            return res.status(404).json({ message: 'Project not found' });
+        }
+
+        res.json({ message: 'Project updated successfully', project });
+    } catch (error) {
+        console.error('Error updating project:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+
 
 // Export the router to be used in server.js
 module.exports = router;
