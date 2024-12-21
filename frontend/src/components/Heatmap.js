@@ -4,11 +4,13 @@ import Navbar2 from "./Navbar2.js";
 
 const HeatmapPage = () => {
   const [heatmapData, setHeatmapData] = useState([]); // Heatmap points
-  const [setRankedClicks] = useState([]); // Ranked clicks
+  const [rankedClicks, setRankedClicks] = useState([]); // Ranked clicks
   const [totalClicks, setTotalClicks] = useState(0); // Total clicks
   const [iframeLoaded, setIframeLoaded] = useState(false); // Iframe loaded state
   const iframeRef = useRef(null);
   const heatmapInstance = useRef(null);
+  const [scrollPosition, setScrollPosition] = useState(0); // Track the scroll position
+  const [isScrolling, setIsScrolling] = useState(false); // Track if scrolling is happening
 
   // Fetch heatmap and ranked clicks data
   const fetchHeatmapData = useCallback(async () => {
@@ -20,16 +22,16 @@ const HeatmapPage = () => {
           'Content-Type': 'application/json',
         },
       });
-  
+
       const data = await response.json();
-  
+
       if (data.success) {
         const transformedData = data.data.map((point) => ({
           x: point.x,
           y: point.y,
           value: point.intensity,
         }));
-  
+
         const total = transformedData.reduce((sum, point) => sum + point.value, 0);
         setTotalClicks(total);
         setHeatmapData(transformedData);
@@ -41,7 +43,6 @@ const HeatmapPage = () => {
       console.error("Failed to fetch heatmap data:", err);
     }
   }, []);
-  
 
   // Initialize heatmap
   const initializeHeatmap = useCallback(() => {
@@ -56,44 +57,58 @@ const HeatmapPage = () => {
       gradient: { 0.2: "blue", 0.5: "yellow", 1.0: "red" },
     });
 
+    // Set the initial data after initialization
     heatmapInstance.current.setData({
       max: 20,
       data: heatmapData,
     });
   }, [heatmapData]);
 
-  // Scroll event to keep heatmap aligned
-  const handleIframeScroll = useCallback(() => {
-    const iframeWindow = iframeRef.current?.contentWindow;
-    if (iframeWindow && heatmapInstance.current) {
-      const scrollX = iframeWindow.scrollX || 0;
-      const scrollY = iframeWindow.scrollY || 0;
+  // Track click on the parent document (main page)
+  const handlePageClick = useCallback((event) => {
+    // Get the click position relative to the parent page
+    const x = event.clientX;
+    const y = event.clientY;
 
-      heatmapInstance.current.setData({
-        max: 20,
-        data: heatmapData.map((point) => ({
-          x: point.x - scrollX,
-          y: point.y - scrollY,
-          value: point.value,
-        })),
-      });
-    }
-  }, [heatmapData]);
+    // Adjust the Y position based on the page scroll position
+    const adjustedY = y + scrollPosition;
 
+    // Save the click positions fixed relative to the parent document (without moving with the iframe)
+    const newPoint = { x, y: adjustedY, value: 1 }; // Use adjusted Y position
+    setHeatmapData((prevData) => {
+      const updatedData = [...prevData, newPoint];
+      setTotalClicks(updatedData.reduce((sum, point) => sum + point.value, 0));
+      return updatedData;
+    });
+  }, [scrollPosition]);
+
+  // Handle page scroll
+  const handleScroll = useCallback(() => {
+    setScrollPosition(window.scrollY); // Update the scroll position
+  }, []);
+
+  // Fetch data and initialize heatmap when the component is loaded
   useEffect(() => {
     fetchHeatmapData();
   }, [fetchHeatmapData]);
 
+  // Initialize heatmap and iframe on load
   useEffect(() => {
     if (iframeLoaded) {
       initializeHeatmap();
-      const iframeWindow = iframeRef.current?.contentWindow;
-      if (iframeWindow) {
-        iframeWindow.addEventListener("scroll", handleIframeScroll);
-        return () => iframeWindow.removeEventListener("scroll", handleIframeScroll);
-      }
     }
-  }, [iframeLoaded, heatmapData, handleIframeScroll, initializeHeatmap]);
+  }, [iframeLoaded, initializeHeatmap]);
+
+  // Add event listener for page click and scroll
+  useEffect(() => {
+    window.addEventListener("click", handlePageClick);
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("click", handlePageClick);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [handlePageClick, handleScroll]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-200 to-blue-200 flex flex-col">
@@ -159,7 +174,7 @@ const HeatmapPage = () => {
             {/* Iframe */}
             <iframe
               ref={iframeRef}
-              src="http://127.0.0.1:5500"
+              src="https://nzxtsol.com/aurax/"
               title="Heatmap Content"
               className="w-full h-full absolute top-0 left-0 z-0"
               onLoad={() => setIframeLoaded(true)}

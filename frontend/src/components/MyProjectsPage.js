@@ -7,21 +7,21 @@ const MyProjects = () => {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [currentProject, setCurrentProject] = useState(null); // Holds project being edited
+    const [currentProject, setCurrentProject] = useState(null);
 
     useEffect(() => {
         const fetchProjects = async () => {
             try {
                 const response = await fetch('http://localhost:5000/api/projects', {
                     headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`, // Include token
+                        Authorization: `Bearer ${localStorage.getItem('token')}`,
                     },
                 });
-    
+
                 if (!response.ok) {
                     throw new Error('Failed to fetch projects');
                 }
-    
+
                 const data = await response.json();
                 setProjects(data.projects);
             } catch (error) {
@@ -30,16 +30,16 @@ const MyProjects = () => {
                 setLoading(false);
             }
         };
-    
+
         fetchProjects();
     }, []);
-    
+
     const handleDelete = async (projectId) => {
         try {
             const response = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
                 method: 'DELETE',
                 headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`, // Include token
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
             });
 
@@ -115,7 +115,7 @@ const MyProjects = () => {
                 </div>
 
                 {loading ? (
-                    <div>Loading...</div> // Show a loading message or spinner while data is being fetched
+                    <p>Loading projects...</p>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {projects.map((project) => (
@@ -161,7 +161,6 @@ const MyProjects = () => {
                 )}
             </div>
 
-            {/* Edit Modal */}
             {isEditModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white shadow-2xl rounded-lg p-8 w-96">
