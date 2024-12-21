@@ -9,7 +9,6 @@ router.post('/create', authenticateToken, async (req, res) => {
     const userId = req.user.id;  // Get the user ID from the decoded JWT
 
     try {
-        // Check if all fields are provided
         if (!name || !url || !domain) {
             return res.status(400).json({ message: 'All fields are required.' });
         }
@@ -25,7 +24,7 @@ router.post('/create', authenticateToken, async (req, res) => {
             name,
             url: url.toLowerCase(),
             domain,
-            owner: userId,  // Set the owner to the logged-in user
+            owner: userId,
         });
 
         const savedProject = await newProject.save();  // Save the project
@@ -59,8 +58,7 @@ router.delete('/:projectId', authenticateToken, async (req, res) => {
 
     try {
         console.log(`Attempting to delete project with ID: ${projectId}`);
-        
-        // Find the project by ID
+
         const project = await Project.findById(projectId);
 
         if (!project) {
@@ -68,26 +66,23 @@ router.delete('/:projectId', authenticateToken, async (req, res) => {
             return res.status(404).json({ message: 'Project not found' });
         }
 
-        // Ensure the logged-in user is the project owner
         if (project.owner.toString() !== userId) {
             console.log('User is not authorized to delete this project');
             return res.status(403).json({ message: 'You are not authorized to delete this project.' });
         }
 
-        // Delete the project using findByIdAndDelete
-        await Project.findByIdAndDelete(projectId); // Use findByIdAndDelete instead of remove
+        await Project.findByIdAndDelete(projectId); // Delete the project
         console.log('Project deleted successfully');
         res.status(200).json({ message: 'Project deleted successfully' });
-
     } catch (error) {
         console.error('Error deleting project:', error);
         res.status(500).json({ message: 'Failed to delete project', error: error.message });
     }
 });
 
-// PUT route to update a project
-router.put('/:id', async (req, res) => {
-    const { id } = req.params; // Extract project ID from the URL
+// PUT route to update a project (authentication required)
+router.put('/:id', authenticateToken, async (req, res) => {
+    const { id } = req.params;
     const { name, url, domain } = req.body;
 
     try {
@@ -103,8 +98,6 @@ router.put('/:id', async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
-
-
 
 // Export the router to be used in server.js
 module.exports = router;

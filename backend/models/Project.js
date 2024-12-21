@@ -1,4 +1,3 @@
-// models/Project.js
 const mongoose = require('mongoose');
 
 const projectSchema = new mongoose.Schema({
@@ -15,14 +14,12 @@ const projectSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    creatorID: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Reference to User
-}, { timestamps: true }); // Automatically adds `createdAt` and `updatedAt` fields
-    owner: {
+    owner: { // Reference to the User model for the owner of the project
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User', // Reference to the User model
-        required: true, // Ensure each project has an owner
+        ref: 'User',
+        required: true,
     },
-}, { timestamps: true });
+}, { timestamps: true }); // Automatically adds `createdAt` and `updatedAt` fields
 
 const Project = mongoose.model('Project', projectSchema);
 

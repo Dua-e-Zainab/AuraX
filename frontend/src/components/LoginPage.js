@@ -20,8 +20,6 @@ const LoginPage = () => {
       });
 
       const data = await response.json();
-      console.log('Google Login Response:', data);
-
       if (response.ok) {
         localStorage.setItem('token', data.token);
         alert(`Welcome, ${data.user.name}!`);
@@ -35,6 +33,7 @@ const LoginPage = () => {
     }
   };
 
+  
   const handleGoogleError = () => {
     setError('Google login failed. Please try again.');
   };
@@ -42,11 +41,9 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
+    setError('');
 
     try {
-
-      console.log('Submitting login:', { email, password });
       const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: {
@@ -56,101 +53,37 @@ const LoginPage = () => {
       });
 
       const data = await response.json();
-      console.log('API Response:', data);
-
       if (response.ok) {
         localStorage.setItem('token', data.token);
         navigate('/projects');
       } else {
         setError(data.message || 'Login failed. Please try again.');
       }
-    } catch (error) {
-      console.error('Error logging in:', error);
+    } catch (err) {
+      console.error('Error logging in:', err);
       setError('Something went wrong. Please try again later.');
-
-        console.log('Submitting login:', { email, password });
-        const response = await fetch('http://localhost:5000/api/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email, password }),
-        });
-
-        const data = await response.json();
-        console.log('API Response:', data);
-
-        if (response.ok) {
-            localStorage.setItem('token', data.token);  // Store token in localStorage
-            navigate('/projects');  // Redirect to projects page on successful login
-        } else {
-            setError(data.message || 'Login failed. Please try again.');  // Display error message if login fails
-        }
-    } catch (error) {
-        console.error('Error logging in:', error);
-        setError('Something went wrong. Please try again later.');  // Handle unexpected errors
-
     } finally {
       setLoading(false);
     }
   };
 
   return (
-
-    <GoogleOAuthProvider clientId="39996397390-2kc07mu8fhl2pg32s99ata3u1punr2sq.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
       <div className="flex justify-center items-center h-screen bg-gradient-to-br from-purple-200 to-blue-200">
         <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg text-center">
+          {/* Logo */}
           <div className="mb-6">
             <img
               src={`${process.env.PUBLIC_URL}/Logo - AuraX 22.png`}
               alt="AuraX Logo"
               className="mx-auto w-32 mb-4"
-
-    <div className="flex justify-center items-center h-screen bg-gradient-to-br from-purple-200 to-blue-200">
-      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg text-center">
-        <div className="mb-6">
-          <img
-            src={`${process.env.PUBLIC_URL}/Logo - AuraX 22.png`}
-            alt="AuraX Logo"
-            className="mx-auto w-32 mb-4"
-          />
-          <h2 className="text-2xl font-bold text-purple-700">Log in</h2>
-        </div>
-        <form onSubmit={handleSubmit}>
-          <button
-            type="button"
-            className="flex items-center justify-center w-full py-2 border border-purple-400 rounded text-gray-700 font-semibold hover:bg-gray-100 transition"
-          >
-            <img
-              src="google.png"
-              alt="Google Logo"
-              className="w-5 h-5 mr-4"
-            />
-            Sign in with Google
-          </button>
-
-          <div className="flex items-center justify-center mt-6 mb-4">
-            <hr className="flex-1 border-t border-purple-400" />
-            <span className="mx-4 text-purple-600">or login with email</span>
-            <hr className="flex-1 border-t border-purple-400" />
-          </div>
-
-          <div className="mb-4 text-left">
-            <label className="block text-purple-700 font-medium">Email Address</label>
-            <input
-              type="email"
-              className="w-full mt-2 p-2 border border-purple-400 rounded focus:outline-none focus:ring focus:ring-purple-300"
-              placeholder="e.g. abc.jason@gmail.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-
             />
             <h2 className="text-2xl font-bold text-purple-700">Log in</h2>
           </div>
 
+          {/* Form */}
           <form onSubmit={handleSubmit}>
-            {/* Google Sign-In Button */}
+            {/* Google Login */}
             <div className="mb-6">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
@@ -162,44 +95,23 @@ const LoginPage = () => {
                     disabled={renderProps.disabled}
                     className="flex items-center justify-center w-full py-2 border border-purple-400 rounded text-gray-700 font-semibold hover:bg-gray-100 transition"
                   >
-                    <img
-                      src="google.png"
-                      alt="Google Logo"
-                      className="w-5 h-5 mr-4"
-                    />
+                    <img src="google.png" alt="Google Logo" className="w-5 h-5 mr-4" />
                     Sign in with Google
                   </button>
                 )}
               />
             </div>
 
-            {/* Horizontal Divider */}
+            {/* Divider */}
             <div className="flex items-center justify-center mt-6 mb-4">
               <hr className="flex-1 border-t border-purple-400" />
               <span className="mx-4 text-purple-600">or login with email</span>
               <hr className="flex-1 border-t border-purple-400" />
             </div>
 
-            {/* Email Input */}
+            {/* Email */}
             <div className="mb-4 text-left">
               <label className="block text-purple-700 font-medium">Email Address</label>
-
-
-          <div className="mb-4 text-left">
-            <label className="block text-purple-700 font-medium">Password</label>
-            <input
-              type="password"
-              className="w-full mt-2 p-2 border border-purple-400 rounded focus:outline-none focus:ring focus:ring-purple-300"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="flex justify-between items-center mb-6 text-sm text-purple-600">
-            <label className="flex items-center">
-
               <input
                 type="email"
                 className="w-full mt-2 p-2 border border-purple-400 rounded focus:outline-none focus:ring focus:ring-purple-300"
@@ -210,8 +122,7 @@ const LoginPage = () => {
               />
             </div>
 
-
-            {/* Password Input */}
+            {/* Password */}
             <div className="mb-4 text-left">
               <label className="block text-purple-700 font-medium">Password</label>
               <input
@@ -224,7 +135,7 @@ const LoginPage = () => {
               />
             </div>
 
-            {/* Remember Me Checkbox */}
+            {/* Remember Me & Forgot Password */}
             <div className="flex justify-between items-center mb-6 text-sm text-purple-600">
               <label className="flex items-center">
                 <input
@@ -235,13 +146,17 @@ const LoginPage = () => {
                 />
                 Remember me
               </label>
-              <Link to="/forgot-password" className="hover:underline">Forgot password?</Link>
+              <Link to="/forgot-password" className="hover:underline">
+                Forgot password?
+              </Link>
             </div>
 
             {/* Submit Button */}
             <button
               type="submit"
-              className={`w-full py-3 mt-4 rounded bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold hover:from-blue-600 hover:to-purple-600 transition ${loading ? 'bg-gray-500 cursor-not-allowed' : ''}`}
+              className={`w-full py-3 mt-4 rounded bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold hover:from-blue-600 hover:to-purple-600 transition ${
+                loading ? 'bg-gray-500 cursor-not-allowed' : ''
+              }`}
               disabled={loading}
             >
               {loading ? 'Logging in...' : 'Submit'}
@@ -257,29 +172,12 @@ const LoginPage = () => {
 
           {/* Register Link */}
           <p className="mt-6 text-sm text-purple-700">
-            Don’t have an account? <Link to="/register" className="font-semibold hover:underline">Register yourself now</Link>
+            Don’t have an account?{' '}
+            <Link to="/register" className="font-semibold hover:underline">
+              Register yourself now
+            </Link>
           </p>
         </div>
-
-          <button
-            type="submit"
-            className={`w-full py-3 mt-4 rounded bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold hover:from-blue-600 hover:to-purple-600 transition ${loading ? 'bg-gray-500 cursor-not-allowed' : ''}`}
-            disabled={loading}
-          >
-            {loading ? 'Logging in...' : 'Submit'}
-          </button>
-        </form>
-
-        {error && (
-          <p className="mt-4 text-red-500 text-sm">
-            {error}
-          </p>
-        )}
-
-        <p className="mt-6 text-sm text-purple-700">
-          Don’t have an account? <Link to="/register" className="font-semibold hover:underline">Register yourself now</Link>
-        </p>
-
       </div>
     </GoogleOAuthProvider>
   );
