@@ -1,100 +1,165 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import h337 from "heatmap.js";
-import Navbar2 from "./Navbar2.js";
+import Navbar2 from "./Navbar2";
+import { useParams } from "react-router-dom";
 
 const HeatmapPage = () => {
-  const [heatmapData, setHeatmapData] = useState([]); // Heatmap points
-  const [setRankedClicks] = useState([]); // Ranked clicks
-  const [totalClicks, setTotalClicks] = useState(0); // Total clicks
-  const [iframeLoaded, setIframeLoaded] = useState(false); // Iframe loaded state
+  const { projectId: paramProjectId } = useParams();
+  const projectId = paramProjectId || localStorage.getItem("projectId");
+  const [projectUrl, setProjectUrl] = useState("");
+  const [heatmapData, setHeatmapData] = useState([]);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
   const iframeRef = useRef(null);
   const heatmapInstance = useRef(null);
+  const [scrollY, setScrollY] = useState(0); 
 
-  // Fetch heatmap and ranked clicks data
-  const fetchHeatmapData = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/track/heatmap/7hf3b7nh8`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-  
-      const data = await response.json();
-  
-      if (data.success) {
+  // Fetch project URL
+  useEffect(() => {
+    const fetchProjectUrl = async () => {
+      const token = localStorage.getItem("token");
+      try {
+        const response = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const data = await response.json();
+        if (response.ok && data.success) {
+          setProjectUrl(data.project.url);
+        } else {
+          console.error("Error fetching project URL:", data.message || "Not Found");
+        }
+      } catch (err) {
+        console.error("Failed to fetch project URL:", err);
+      }
+    };
+
+    fetchProjectUrl();
+  }, [projectId]);
+
+  // Fetch heatmap data
+  useEffect(() => {
+    const fetchHeatmapData = async () => {
+      const storedProjectId = projectId || localStorage.getItem("projectId");
+      if (!storedProjectId) {
+        console.error("Project ID not found.");
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("No token found. Please log in.");
+          return;
+        }
+
+        const response = await fetch(
+          `http://localhost:5000/api/track/heatmap/${storedProjectId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Error fetching heatmap data: ${response.statusText}`);
+        }
+
+        const data = await response.json();
         const transformedData = data.data.map((point) => ({
           x: point.x,
           y: point.y,
           value: point.intensity,
         }));
-  
-        const total = transformedData.reduce((sum, point) => sum + point.value, 0);
-        setTotalClicks(total);
         setHeatmapData(transformedData);
-        setRankedClicks(data.rankedClicks || []);
-      } else {
-        console.error("Error fetching heatmap data:", data.message);
+      } catch (error) {
+        console.error("Error fetching heatmap data:", error.message);
       }
-    } catch (err) {
-      console.error("Failed to fetch heatmap data:", err);
-    }
-  }, []);
-  
+    };
+
+    fetchHeatmapData();
+  }, [projectId]);
 
   // Initialize heatmap
-  const initializeHeatmap = useCallback(() => {
+  useEffect(() => {
+    if (!iframeLoaded || heatmapData.length === 0) return;
+  
     const heatmapContainer = document.getElementById("heatmap-container");
-    if (!heatmapContainer) return;
-
-    heatmapInstance.current = h337.create({
-      container: heatmapContainer,
-      radius: 30,
-      maxOpacity: 0.6,
-      blur: 0.8,
-      gradient: { 0.2: "blue", 0.5: "yellow", 1.0: "red" },
-    });
-
-    heatmapInstance.current.setData({
-      max: 20,
-      data: heatmapData,
-    });
-  }, [heatmapData]);
-
-  // Scroll event to keep heatmap aligned
-  const handleIframeScroll = useCallback(() => {
-    const iframeWindow = iframeRef.current?.contentWindow;
-    if (iframeWindow && heatmapInstance.current) {
-      const scrollX = iframeWindow.scrollX || 0;
-      const scrollY = iframeWindow.scrollY || 0;
-
-      heatmapInstance.current.setData({
-        max: 20,
-        data: heatmapData.map((point) => ({
-          x: point.x - scrollX,
-          y: point.y - scrollY,
-          value: point.value,
-        })),
+    if (!heatmapContainer) {
+      console.error("Heatmap container not found.");
+      return;
+    }
+  
+    if (!heatmapInstance.current) {
+      heatmapInstance.current = h337.create({
+        container: heatmapContainer,
+        radius: 30,
+        maxOpacity: 0.6,
+        blur: 0.8,
+        gradient: { 0.2: "blue", 0.5: "yellow", 1.0: "red" },
       });
     }
-  }, [heatmapData]);
-
-  useEffect(() => {
-    fetchHeatmapData();
-  }, [fetchHeatmapData]);
-
-  useEffect(() => {
-    if (iframeLoaded) {
-      initializeHeatmap();
-      const iframeWindow = iframeRef.current?.contentWindow;
-      if (iframeWindow) {
-        iframeWindow.addEventListener("scroll", handleIframeScroll);
-        return () => iframeWindow.removeEventListener("scroll", handleIframeScroll);
-      }
+  
+    const iframeRect = iframeRef.current?.getBoundingClientRect();
+    if (!iframeRect) {
+      console.error("Iframe dimensions not available.");
+      return;
     }
-  }, [iframeLoaded, heatmapData, handleIframeScroll, initializeHeatmap]);
+  
+    // Adjust heatmap data to account for scrolling
+    heatmapInstance.current.setData({
+      max: Math.max(...heatmapData.map((point) => point.value), 10),
+      data: heatmapData.map((point) => ({
+        x: point.x - iframeRect.left,
+        y: point.y - iframeRect.top - scrollY, // Adjust for iframe scroll
+        value: point.value,
+      })),
+    });
+  
+    console.log("Heatmap updated with scrolling:", { heatmapData, scrollY });
+  }, [iframeLoaded, heatmapData, scrollY]);
+  
+  // Listen for messages from the iframe
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (!projectUrl) return;
+  
+      const expectedOrigin = new URL(projectUrl).origin;
+      if (event.origin !== expectedOrigin) return;
+  
+      const { type, scrollY } = event.data;
+      if (type === "SCROLL_EVENT") {
+        setScrollY(scrollY); // Update the scroll offset dynamically
+      }
+    };
+  
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [projectUrl]);
 
+  // Handle hover events on the heatmap
+  const handleHeatmapHover = (e) => {
+    const tooltip = document.getElementById("heatmap-tooltip");
+    const heatmapContainer = document.getElementById("heatmap-container");
+  
+    if (!heatmapContainer || !heatmapInstance.current) return;
+  
+    const heatmapRect = heatmapContainer.getBoundingClientRect();
+    const mouseX = e.clientX - heatmapRect.left;
+    const mouseY = e.clientY - heatmapRect.top;
+  
+    const value = heatmapInstance.current.getValueAt({ x: mouseX, y: mouseY });
+  
+    if (value > 0) {
+      tooltip.style.display = "block";
+      tooltip.style.left = `${e.pageX + 10}px`;
+      tooltip.style.top = `${e.pageY + 10}px`;
+      tooltip.innerText = `Clicks: ${value}`;
+    } else {
+      tooltip.style.display = "none";
+    }
+  };
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-200 to-blue-200 flex flex-col">
       {/* Navbar */}
@@ -129,12 +194,12 @@ const HeatmapPage = () => {
             <li className="hover:text-purple-700 p-2 cursor-pointer">
               Products page - 1 month ago
             </li>
+            
           </ul>
-
           {/* Total Clicks */}
           <div className="mt-8 p-4 bg-purple-50 border border-purple-300 rounded-lg text-center">
-            <p className="text-purple-700 font-medium">Total Clicks</p>
-            <p className="text-3xl font-bold text-purple-600">{totalClicks}</p>
+            <p className="text-purple-700 font-black">Total Clicks</p>
+            <p>{heatmapData.reduce((sum, point) => sum + point.value, 0)}</p>
           </div>
         </aside>
 
@@ -151,20 +216,33 @@ const HeatmapPage = () => {
 
           {/* Heatmap Container */}
           <div className="relative h-[calc(100vh-5rem)] rounded-lg border overflow-hidden shadow-lg">
+            {/* Heatmap Layer */}
             <div
               id="heatmap-container"
               className="absolute top-0 left-0 w-full h-full pointer-events-none z-10"
+              onMouseMove={(e) => handleHeatmapHover(e)}
             ></div>
 
-            {/* Iframe */}
+            {/* Tooltip for displaying click details */}
+            <div
+              id="heatmap-tooltip"
+              className="absolute bg-tooltipBg text-white text-xs rounded px-2 py-1 pointer-events-none hidden z-20 animate-fadeIn"
+              style={{ display: "none" }}
+            ></div>
+
+            {/* Iframe for Project Content */}
             <iframe
-              ref={iframeRef}
-              src="http://127.0.0.1:5500"
-              title="Heatmap Content"
-              className="w-full h-full absolute top-0 left-0 z-0"
-              onLoad={() => setIframeLoaded(true)}
-            ></iframe>
-          </div>
+          ref={iframeRef}
+          src={projectUrl}
+          className="w-full h-full absolute top-0 left-0 z-0"
+          onLoad={() => setIframeLoaded(true)}
+          sandbox="allow-same-origin allow-scripts"
+        />
+        <div
+          id="heatmap-tooltip"
+          className="absolute bg-black text-white text-xs rounded px-2 py-1 pointer-events-none hidden z-20"
+        ></div>
+        </div>
         </section>
       </div>
     </div>

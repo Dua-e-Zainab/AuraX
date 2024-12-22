@@ -7,25 +7,31 @@ const MyProjects = () => {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [currentProject, setCurrentProject] = useState(null); // Holds project being edited
+    const [currentProject, setCurrentProject] = useState(null); 
 
     useEffect(() => {
         const fetchProjects = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/projects', {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    console.error("No token found. Ensure the user is logged in.");
+                    return;
+                }
+    
+                const response = await fetch("http://localhost:5000/api/projects", {
                     headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`, // Include token
+                        Authorization: `Bearer ${token}`,
                     },
                 });
     
-                if (!response.ok) {
-                    throw new Error('Failed to fetch projects');
+                if (response.ok) {
+                    const data = await response.json();
+                    setProjects(data.projects);
+                } else {
+                    console.error("Error fetching projects:", response.statusText);
                 }
-    
-                const data = await response.json();
-                setProjects(data.projects);
             } catch (error) {
-                console.error('Error fetching projects:', error);
+                console.error("Error fetching projects:", error);
             } finally {
                 setLoading(false);
             }
@@ -69,6 +75,10 @@ const MyProjects = () => {
 
     const handleEditSubmit = async (e) => {
         e.preventDefault();
+    
+        console.log('Project ID being updated:', currentProject._id); 
+        console.log('Request Payload:', currentProject); 
+    
         try {
             const response = await fetch(`http://localhost:5000/api/projects/${currentProject._id}`, {
                 method: 'PUT',
@@ -78,22 +88,25 @@ const MyProjects = () => {
                 },
                 body: JSON.stringify(currentProject),
             });
-
+    
+            const data = await response.json();
+            console.log('Response from server:', data); 
+    
             if (response.ok) {
                 setProjects((prevProjects) =>
                     prevProjects.map((project) =>
-                        project._id === currentProject._id ? currentProject : project
+                        project._id === currentProject._id ? { ...currentProject } : project
                     )
                 );
                 setIsEditModalOpen(false);
             } else {
-                console.error('Failed to update project');
+                console.error('Failed to update project:', data.message);
             }
         } catch (error) {
             console.error('Error updating project:', error);
         }
     };
-
+    
     return (
         <div className="h-screen bg-gradient-to-br from-purple-100 to-blue-200">
             <Navbar1 />
@@ -124,14 +137,19 @@ const MyProjects = () => {
                                 key={project._id}
                                 className="bg-white shadow-lg rounded-lg p-6 flex flex-col space-y-4 transition hover:shadow-xl cursor-pointer"
                             >
-                                <Link to={`/overview/${project._id}`} className="flex items-center space-x-4">
+                                <Link
+                                    to={`/overview/${project._id}`}
+                                    onClick={() => {
+                                        localStorage.setItem('projectId', project._id);  
+                                        localStorage.setItem('projectUrl', project.url); 
+                                    }}
+                                    className="flex items-center space-x-4"
+                                >
                                     <div className="w-12 h-12 bg-purple-200 rounded-full flex items-center justify-center text-purple-600">
                                         <FaUsers size={24} />
                                     </div>
                                     <div>
-                                        <h2 className="text-xl font-semibold text-gray-800">
-                                            {project.name}
-                                        </h2>
+                                        <h2 className="text-xl font-semibold text-gray-800">{project.name}</h2>
                                         <a
                                             href={project.url}
                                             target="_blank"
@@ -142,6 +160,7 @@ const MyProjects = () => {
                                         </a>
                                     </div>
                                 </Link>
+
                                 <div className="flex justify-between border-t pt-4 text-gray-600">
                                     <button
                                         className="flex items-center space-x-2 hover:text-green-600"

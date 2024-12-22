@@ -1,21 +1,31 @@
 const express = require('express');
 const UserData = require('../models/UserData');
+const Project = require('../models/Project');
+const { authenticateToken } = require('../middleware/authMiddleware');
 const router = express.Router();
 
-// Endpoint to receive and save user interaction data
-router.post('/', async (req, res) => {
+// Endpoint to save user interaction data for a specific project
+router.post("/:projectId", async (req, res) => {
+  console.log("Request Body:", req.body); 
+
+  const {
+    sessionId,
+    x,
+    y,
+    eventType,
+    timestamp,
+    os,
+    device,
+    browser,
+    rageClicks,
+    deadClicks,
+    quickClicks,
+    intensity,
+  } = req.body;
+
   try {
-    console.log("Received data:", req.body); // Log the incoming data
-
-    const { sessionId, x, y, eventType, timestamp, os, device, browser, region, rageClicks, deadClicks, quickClicks, heatmapData } = req.body;
-
-    // Check for required fields in the request body
-    if (!sessionId || !x || !y || !eventType || !timestamp) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-
-    // Create a new instance of UserData and save it
     const userData = new UserData({
+      projectId: req.params.projectId,
       sessionId,
       x,
       y,
@@ -24,45 +34,47 @@ router.post('/', async (req, res) => {
       os,
       device,
       browser,
-      region,
       rageClicks,
       deadClicks,
       quickClicks,
-      heatmapData // Save heatmap data
+      intensity,
     });
 
-    await userData.save(); // Save to MongoDB
-    res.status(200).json({ message: 'Data received and saved' }); // Send success response
+    console.log("Data to be saved:", userData); 
+    await userData.save();
+    console.log("Data saved successfully:", userData); 
+    res.status(201).json({ message: "Data saved successfully" });
   } catch (err) {
-    console.error('Error saving user data:', err);
-    res.status(500).json({ message: 'Error saving data' }); // Send error response
+    console.error("Error saving user data:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-// Endpoint to fetch heatmap data for a specific session
-router.get('/heatmap/:sessionId', async (req, res) => {
-  const { sessionId } = req.params;
+// Fetch heatmap data for a specific project (requires authentication)
+router.get('/heatmap/:projectId', authenticateToken, async (req, res) => {
+  const { projectId } = req.params;
 
   try {
-    const userData = await UserData.find({ sessionId });
+    console.log(`Fetching heatmap data for project ID: ${projectId}`);
 
+    const userData = await UserData.find({ projectId });
     if (!userData || userData.length === 0) {
-      return res.status(404).json({ success: false, message: "No data found." });
+      console.log(`No data found for project ID: ${projectId}`);
+      return res.status(404).json({ success: false, message: 'No data found for this project.' });
     }
 
-    // Format data for heatmap.js
     const heatmapData = userData.map((entry) => ({
       x: entry.x,
       y: entry.y,
-      intensity: entry.rageClicks || entry.quickClicks || 1, // Adjust intensity dynamically
+      intensity: entry.intensity || 1,
     }));
 
-    return res.json({ success: true, data: heatmapData });
+    console.log(`Heatmap data fetched successfully for project ID: ${projectId}`);
+    res.json({ success: true, data: heatmapData });
   } catch (error) {
-    console.error("Error fetching heatmap data:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error('Error fetching heatmap data:', error.message);
+    res.status(500).json({ success: false, message: 'Server error.' });
   }
 });
-
 
 module.exports = router;
