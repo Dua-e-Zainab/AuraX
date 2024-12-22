@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios'; 
-import { useNavigate } from 'react-router-dom'; 
+import { Link, useNavigate } from 'react-router-dom';
 
 const RegisterPage = () => {
   const [email, setEmail] = useState('');
@@ -59,11 +59,13 @@ const RegisterPage = () => {
         {/* Left section for the form */}
         <div className="flex-1 p-10">
           <div className="text-center mb-6">
+            <Link to="/">
             <img
               src={`${process.env.PUBLIC_URL}/Logo - AuraX 22.png`}
               alt="AuraX Logo"
               className="mx-auto w-32 mb-4"
             />
+            </Link>
             <h3 className="text-2xl font-bold text-purple-700">Create your account</h3>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">

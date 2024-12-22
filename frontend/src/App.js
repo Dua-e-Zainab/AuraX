@@ -8,8 +8,10 @@ import CreateProjectPage from './components/CreateProjectPage';
 import MyProjectsPage from './components/MyProjectsPage';
 import OverviewPage from './components/OverviewPage';
 import Dashboard from './components/Dashboard.js';
-import NewPage from './components/NewPage.js';
 import HeatmapPage from './components/Heatmap.js';
+import InsightsPage from './components/InsightsPage.js';
+import CSSCustomiation from './components/CSS-Customization.js';
+import CSSCustomizationPage from './components/CSSCustomizationPage.js';
 //import Navbar from './components/Navbar'; // Import Navbar
 //import Footer from './components/Footer'; // Import Footer
 
@@ -29,9 +31,10 @@ const App = () => {
         <Route path="/myprojects" element={<MyProjectsPage />} />
         <Route path="/overview/:id" element={<OverviewPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/NewPage" element={<NewPage />} />
-
         <Route path="/heatmap" element={<HeatmapPage />} />
+        <Route path="/insights" element={<InsightsPage />} />
+        <Route path="/css-customization" element={<CSSCustomiation />} />
+        <Route path="/css-customization-page" element={<CSSCustomizationPage />} />
       </Routes>
       
       {/* Footer is included here so it appears on all pages */}

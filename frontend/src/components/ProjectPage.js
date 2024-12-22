@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 const ProjectPage = () => {
   return (
     // <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-b from-purple-100 to-indigo-100">
-    <div className="font-sans bg-[#f4f7fe] text-gray-800 bg-gradient-to-b from-indigo-100 to-violet-200 h-screen justify-center">
+    <div className="font-sans bg-[#f4f7fe] text-gray-800 bg-gradient-to-b from-indigo-100 to-violet-200 min-h-screen justify-center">
         <Navbar1 />
       {/* <header className="flex justify-between w-full px-8 py-4 text-indigo-900 bg-white">
         <img src = "Logo - AuraX 22.png" alt="img"/>

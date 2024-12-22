@@ -12,12 +12,12 @@ import {
 
 const Navbar2 = () => {
   return (
-    <nav className="bg-white shadow-sm py-4 flex items-center h-16 w-full">
+    <nav className="bg-white shadow-sm py-8 flex items-center h-100 w-full">
       <ul className="flex justify-center space-x-20 text-gray-400 text-lg font-medium w-full mx-auto">
         {/* Overview */}
         <li>
           <NavLink
-            to="/overview"
+            to="/overview/:id"
             className={({ isActive }) =>
               isActive ? "text-purple-600 flex items-center" : "hover:text-purple-600 flex items-center"
             }
@@ -91,7 +91,7 @@ const Navbar2 = () => {
         {/* Profile */}
         <li>
           <NavLink
-            to="/profile"
+            to="/myprojects"
             className={({ isActive }) =>
               isActive
                 ? "text-purple-600 flex items-center"
@@ -99,7 +99,7 @@ const Navbar2 = () => {
             }
           >
             <FontAwesomeIcon icon={faUser} className="text-2xl mr-2" />
-            Profile
+            Account
           </NavLink>
         </li>
       </ul>

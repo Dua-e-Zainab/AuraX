@@ -20,14 +20,16 @@ const HeatmapPage = () => {
   return (
     <div className="bg-gradient-to-r from-blue-200 to-purple-300 min-h-screen text-gray-800">
       {/* Header Navigation */}
-      <header className="bg-white shadow-md py-4 px-8 flex justify-between items-center">
+      <header>
         <Navbar2 />
       </header>
 
-      <div className="py-8 px-12">
+             {/* Main Content */}
+      <main className="py-12 px-8 md:px-20">
+      <div className="none">
         {/* Page Title and Search */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-5xl font-bold text-purple-800 pl-1">AuraX | Heatmap</h1>
+          <h1 className="text-4xl font-bold text-purple-800 pl-1">AuraX | Heatmap</h1>
           <div className="flex items-center space-x-4">
             <select className="border border-gray-300 rounded-md px-4 py-2">
               <option value="URL is">URL is</option>
@@ -83,6 +85,7 @@ const HeatmapPage = () => {
           </main>
         </div>
       </div>
+      </main>
     </div>
   );
 };

@@ -30,7 +30,7 @@ const LoginPage = () => {
 
         if (response.ok) {
             localStorage.setItem('token', data.token);  // Store token in localStorage
-            navigate('/projects');  // Redirect to projects page on successful login
+            navigate('/myprojects');  // Redirect to projects page on successful login
         } else {
             setError(data.message || 'Login failed. Please try again.');  // Display error message if login fails
         }
@@ -46,11 +46,13 @@ const LoginPage = () => {
     <div className="flex justify-center items-center h-screen bg-gradient-to-br from-purple-200 to-blue-200">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg text-center">
         <div className="mb-6">
+          <Link to="/">
           <img
             src={`${process.env.PUBLIC_URL}/Logo - AuraX 22.png`}
             alt="AuraX Logo"
             className="mx-auto w-32 mb-4"
           />
+          </Link>
           <h2 className="text-2xl font-bold text-purple-700">Log in</h2>
         </div>
         <form onSubmit={handleSubmit}>
