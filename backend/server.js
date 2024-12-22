@@ -2,14 +2,13 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
-
+const { OAuth2Client } = require('google-auth-library');
 // const { OAuth2Client } = require('google-auth-library'); // Import Google Auth Library
 const authRoutes = require('./routes/auth');
 const projectRoutes = require('./routes/project');
 const trackRoutes = require('./routes/track');
 
-// Load environment variables
-dotenv.config();  
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,7 +31,7 @@ app.use(cors({
     credentials: true, // Allow credentials (cookies, authorization headers, etc.)
 }));
 
-app.use(express.json()); // Parse incoming JSON requests
+app.use(express.json());
 
 // Explicitly handle preflight OPTIONS requests (necessary for CORS)
 app.options('*', cors()); // Allow OPTIONS for all routes
@@ -42,10 +41,10 @@ mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.log('MongoDB connection error:', err));
 
-// API Routes
+// Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/projects', projectRoutes);  // Use the project routes with authentication
-app.use('/api/track', trackRoutes);  // Use track routes (if needed)
+app.use('/api/projects', projectRoutes);
+app.use('/api/track', trackRoutes);
 
 // Add Google OAuth route
 app.post('/api/auth/google', async (req, res) => {
@@ -82,7 +81,6 @@ app.get('/', (req, res) => {
     res.send('Welcome to the Express Server!');
 });
 
-// Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });

@@ -10,7 +10,7 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Google Sign-In Success Handler
+  // Handle Google Login Success
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const response = await fetch('http://localhost:5000/api/auth/google', {
@@ -38,21 +38,25 @@ const LoginPage = () => {
     setError('Google login failed. Please try again.');
   };
 
+  // Handle Email/Password Login
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+  
+    const payload = { email, password }; 
+    console.log('Sending payload to server:', payload); 
 
     try {
       const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
-
+  
       const data = await response.json();
+      console.log('Response from server:', data); 
+
       if (response.ok) {
         localStorage.setItem('token', data.token);
         navigate('/projects');
@@ -66,7 +70,7 @@ const LoginPage = () => {
       setLoading(false);
     }
   };
-
+  
   return (
     <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
       <div className="flex justify-center items-center h-screen bg-gradient-to-br from-purple-200 to-blue-200">
@@ -134,7 +138,6 @@ const LoginPage = () => {
                 required
               />
             </div>
-
             {/* Remember Me & Forgot Password */}
             <div className="flex justify-between items-center mb-6 text-sm text-purple-600">
               <label className="flex items-center">
@@ -164,11 +167,7 @@ const LoginPage = () => {
           </form>
 
           {/* Error Message */}
-          {error && (
-            <p className="mt-4 text-red-500 text-sm">
-              {error}
-            </p>
-          )}
+          {error && <p className="mt-4 text-red-500 text-sm">{error}</p>}
 
           {/* Register Link */}
           <p className="mt-6 text-sm text-purple-700">

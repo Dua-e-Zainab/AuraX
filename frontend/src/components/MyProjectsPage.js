@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { FaTrash, FaUsers, FaSync, FaEdit } from 'react-icons/fa';
 import Navbar1 from './Navbar1';
 
@@ -7,51 +7,59 @@ const MyProjects = () => {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [currentProject, setCurrentProject] = useState(null);
+    const [currentProject, setCurrentProject] = useState(null); 
 
     useEffect(() => {
         const fetchProjects = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/projects', {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    console.error("No token found. Ensure the user is logged in.");
+                    return;
+                }
+    
+                const response = await fetch("http://localhost:5000/api/projects", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+    
+                if (response.ok) {
+                    const data = await response.json();
+                    setProjects(data.projects);
+                } else {
+                    console.error("Error fetching projects:", response.statusText);
+                }
+            } catch (error) {
+                console.error("Error fetching projects:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+    
+        fetchProjects();
+    }, []);
+    
+    const handleDelete = async (projectId) => {
+        if (window.confirm('Are you sure you want to delete this project?')) {
+            try {
+                const response = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
+                    method: 'DELETE',
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`,
                     },
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch projects');
+                if (response.ok) {
+                    setProjects((prevProjects) =>
+                        prevProjects.filter((project) => project._id !== projectId)
+                    );
+                } else {
+                    console.error('Failed to delete project');
                 }
-
-                const data = await response.json();
-                setProjects(data.projects);
             } catch (error) {
-                console.error('Error fetching projects:', error);
-            } finally {
-                setLoading(false);
+                console.error('Error deleting project:', error);
             }
-        };
-
-        fetchProjects();
-    }, []);
-
-    const handleDelete = async (projectId) => {
-        try {
-            const response = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
-                method: 'DELETE',
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                },
-            });
-
-            if (response.ok) {
-                setProjects((prevProjects) =>
-                    prevProjects.filter((project) => project._id !== projectId)
-                );
-            } else {
-                console.error('Failed to delete project');
-            }
-        } catch (error) {
-            console.error('Error deleting project:', error);
         }
     };
 
@@ -67,7 +75,10 @@ const MyProjects = () => {
 
     const handleEditSubmit = async (e) => {
         e.preventDefault();
-
+    
+        console.log('Project ID being updated:', currentProject._id); 
+        console.log('Request Payload:', currentProject); 
+    
         try {
             const response = await fetch(`http://localhost:5000/api/projects/${currentProject._id}`, {
                 method: 'PUT',
@@ -77,22 +88,25 @@ const MyProjects = () => {
                 },
                 body: JSON.stringify(currentProject),
             });
-
+    
+            const data = await response.json();
+            console.log('Response from server:', data); 
+    
             if (response.ok) {
                 setProjects((prevProjects) =>
                     prevProjects.map((project) =>
-                        project._id === currentProject._id ? currentProject : project
+                        project._id === currentProject._id ? { ...currentProject } : project
                     )
                 );
                 setIsEditModalOpen(false);
             } else {
-                console.error('Failed to update project');
+                console.error('Failed to update project:', data.message);
             }
         } catch (error) {
             console.error('Error updating project:', error);
         }
     };
-
+    
     return (
         <div className="h-screen bg-gradient-to-br from-purple-100 to-blue-200">
             <Navbar1 />
@@ -115,15 +129,22 @@ const MyProjects = () => {
                 </div>
 
                 {loading ? (
-                    <p>Loading projects...</p>
-                ) : (
+                    <p className="text-center text-lg text-purple-700 font-medium">Loading projects...</p>
+                ) : projects.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {projects.map((project) => (
                             <div
                                 key={project._id}
                                 className="bg-white shadow-lg rounded-lg p-6 flex flex-col space-y-4 transition hover:shadow-xl cursor-pointer"
                             >
-                                <Link to={`/overview/${project._id}`} className="flex items-center space-x-4">
+                                <Link
+                                    to={`/overview/${project._id}`}
+                                    onClick={() => {
+                                        localStorage.setItem('projectId', project._id);  
+                                        localStorage.setItem('projectUrl', project.url); 
+                                    }}
+                                    className="flex items-center space-x-4"
+                                >
                                     <div className="w-12 h-12 bg-purple-200 rounded-full flex items-center justify-center text-purple-600">
                                         <FaUsers size={24} />
                                     </div>
@@ -139,6 +160,7 @@ const MyProjects = () => {
                                         </a>
                                     </div>
                                 </Link>
+
                                 <div className="flex justify-between border-t pt-4 text-gray-600">
                                     <button
                                         className="flex items-center space-x-2 hover:text-green-600"
@@ -158,16 +180,28 @@ const MyProjects = () => {
                             </div>
                         ))}
                     </div>
+                ) : (
+                    <div className="text-left mt-6">
+                        <h2 className="text-lg font-bold text-purple-700">No Projects Found</h2>
+                        <p className="text-gray-600 mt-2">
+                            It looks like you haven’t created any projects yet. Start by creating one now!
+                        </p>
+                    </div>
                 )}
             </div>
 
+            {/* Edit Modal */}
             {isEditModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white shadow-2xl rounded-lg p-8 w-96">
-                        <h2 className="text-xl font-semibold mb-4 text-center text-gray-800">Edit Project</h2>
+                        <h2 className="text-xl font-semibold mb-4 text-center text-gray-800">
+                            Edit Project
+                        </h2>
                         <form onSubmit={handleEditSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Project Name</label>
+                                <label className="block text-sm font-medium text-gray-700">
+                                    Project Name
+                                </label>
                                 <input
                                     type="text"
                                     name="name"
@@ -177,7 +211,9 @@ const MyProjects = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Project URL</label>
+                                <label className="block text-sm font-medium text-gray-700">
+                                    Project URL
+                                </label>
                                 <input
                                     type="url"
                                     name="url"
@@ -187,7 +223,9 @@ const MyProjects = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Project Domain</label>
+                                <label className="block text-sm font-medium text-gray-700">
+                                    Project Domain
+                                </label>
                                 <input
                                     type="text"
                                     name="domain"

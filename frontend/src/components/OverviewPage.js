@@ -1,31 +1,152 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Navbar2 from "./Navbar2.js";
 
 const OverviewPage = () => {
   const { id } = useParams(); 
+  const [trackingCode, setTrackingCode] = useState(""); 
   const [copySuccess, setCopySuccess] = useState(""); 
 
-  // Function to handle copy to clipboard
-  const handleCopyToClipboard = () => {
-    const scriptCode = `<script type="text/javascript">
-  (function(a,u,r,a,x){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-  t=l.createElement(r);t.async=1;t.src="https://www.aurax.ms/tag/"+i;
-  y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-})(window,document,"aurax","script","oc5w7q0866");
+  useEffect(() => {
+    // Generate the tracking code dynamically
+    const generateTrackingCode = () => {
+      const dynamicCode = `
+<script>
+  (function () {
+    const projectId = "${id}";
+    const sessionId = (() => {
+      let sessionId = localStorage.getItem('sessionId');
+      if (!sessionId) {
+        sessionId = \`sess-\${Math.random().toString(36).substr(2, 9)}\`;
+        localStorage.setItem('sessionId', sessionId);
+      }
+      return sessionId;
+    })();
+
+    let rageClicks = 0, deadClicks = 0, quickClicks = 0;
+    const clickTrackingData = {};
+
+    const trackClickPerformance = (x, y) => {
+      const key = \`\${Math.round(x)},\${Math.round(y)}\`;
+      const currentTime = Date.now();
+
+      const clickData = clickTrackingData[key] = clickTrackingData[key] || {
+        clicks: 0,
+        lastClickTime: 0,
+        clickTimes: [],
+        rageClicks: 0,
+        deadClicks: 0,
+        quickClicks: 0,
+      };
+
+      const timeSinceLastClick = currentTime - clickData.lastClickTime;
+      if (timeSinceLastClick < 500) {
+        clickData.rageClicks++;
+        rageClicks++;
+      }
+
+      clickData.clickTimes.push(currentTime);
+      clickData.clickTimes = clickData.clickTimes.filter(time => currentTime - time <= 2000);
+      if (clickData.clickTimes.length > 2) {
+        clickData.quickClicks++;
+        quickClicks++;
+      }
+
+      const isClickOnActionableArea = (x, y) => {
+        const { innerWidth, innerHeight } = window;
+        const clickableArea = {
+          x: innerWidth / 3,
+          y: innerHeight / 3,
+          width: innerWidth / 3,
+          height: innerHeight / 3,
+        };
+        return (
+          x > clickableArea.x && x < clickableArea.x + clickableArea.width &&
+          y > clickableArea.y && y < clickableArea.y + clickableArea.height
+        );
+      };
+
+      if (!isClickOnActionableArea(x, y)) {
+        clickData.deadClicks++;
+        deadClicks++;
+      }
+
+      clickData.lastClickTime = currentTime;
+      clickData.clicks++;
+    };
+
+    document.addEventListener('click', (event) => {
+      const x = event.pageX;
+      const y = event.pageY;
+
+      trackClickPerformance(x, y);
+
+      fetch(\`http://localhost:5000/api/track/\${projectId}\`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId,
+          sessionId: (() => {
+            let sessionId = localStorage.getItem("sessionId");
+            if (!sessionId) {
+              sessionId = "sess-${Math.random().toString(36).slice(2, 11)}";
+              localStorage.setItem("sessionId", sessionId);
+            }
+            return sessionId;
+          })(),
+          x,
+          y,
+          eventType: "click",
+          timestamp: new Date().toISOString(),
+          os: navigator.platform, 
+          browser: navigator.userAgent,
+          device: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
+          rageClicks,
+          deadClicks,
+          quickClicks,
+          intensity: 1,
+        }),
+      })
+        .then(response => {
+        if (response.ok) {
+          console.log("Data sent successfully:", { x, y });
+        } else {
+          console.error("Failed to send data:", response.status);
+        }
+      }).catch(error => console.error("Error sending data:", error));
+    });
+
+    // Track iframe scroll events and notify parent
+    window.addEventListener("scroll", () => {
+      parent.postMessage(
+        {
+          type: "SCROLL_EVENT",
+          scrollX: window.scrollX, 
+          scrollY: window.scrollY, // Current vertical scroll position
+        },
+        "*" // Replace "*" with the parent's origin for security
+      );
+    });
+  })();
 </script>`;
-    navigator.clipboard.writeText(scriptCode).then(
+      setTrackingCode(dynamicCode);
+    };
+
+    generateTrackingCode();
+  }, [id]); 
+
+  const handleCopyToClipboard = () => {
+    navigator.clipboard.writeText(trackingCode).then(
       () => {
         setCopySuccess("Code copied to clipboard!");
-        setTimeout(() => setCopySuccess(""), 3000); 
+        setTimeout(() => setCopySuccess(""), 3000);
       },
       () => {
         setCopySuccess("Failed to copy code. Please try again.");
-        setTimeout(() => setCopySuccess(""), 3000); 
+        setTimeout(() => setCopySuccess(""), 3000);
       }
     );
   };
-
   return (
     <div className="bg-gradient-to-b from-purple-50 to-purple-100 min-h-screen text-gray-800">
       {/* Header Navigation */}
@@ -61,122 +182,7 @@ const OverviewPage = () => {
                 <p className="font-medium text-gray-700">Copy this code</p>
                 <div className="bg-gray-100 p-4 rounded-md mt-2 relative">
                   <pre className="text-sm text-gray-600 overflow-x-auto">
-                    {`<script type="text/javascript">
-  (function () {
-    // Function to generate a unique session ID for each user session
-    function generateSessionId() {
-      if (!sessionStorage.getItem("session_id")) {
-        sessionStorage.setItem("session_id", "session_" + new Date().getTime());
-      }
-      return sessionStorage.getItem("session_id");
-    }
-
-    // Function to get the user agent details (Device, OS, Browser)
-    function getUserInfo() {
-      const userAgent = navigator.userAgent;
-      const os = navigator.platform;
-      const device = /Mobi|Android|Touch/i.test(userAgent) ? 'Mobile' : 'Desktop';
-      const browser = userAgent.match(/(firefox|msie|chrome|safari|opera|trident)/i)[0];
-      return {
-        os: os,
-        device: device,
-        browser: browser,
-        userAgent: userAgent
-      };
-    }
-
-    // Function to get the user's geographical region (optional)
-    async function getRegion() {
-      try {
-        const response = await fetch('https://ipinfo.io?token=YOUR_API_TOKEN'); // You can use a geolocation API
-        const data = await response.json();
-        return data.region || 'Unknown';
-      } catch (error) {
-        return 'Unknown';
-      }
-    }
-
-    // Function to capture mouse or touch events
-    function trackEvent(event) {
-      const x = event.clientX || (event.touches ? event.touches[0].clientX : 0);
-      const y = event.clientY || (event.touches ? event.touches[0].clientY : 0);
-
-      const userInfo = getUserInfo();
-      const sessionId = generateSessionId();
-
-      const eventData = {
-        x: x,
-        y: y,
-        eventType: event.type,
-        timestamp: new Date().toISOString(),
-        sessionId: sessionId,
-        ...userInfo
-      };
-
-      // Send the data to your backend server
-      fetch('http://localhost:5000/api/track', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(eventData),
-      }).catch((error) => console.error('Error sending data:', error));
-    }
-
-    // Function to capture scroll events
-    function trackScroll() {
-      const scrollY = window.scrollY;
-      const userInfo = getUserInfo();
-      const sessionId = generateSessionId();
-
-      const scrollData = {
-        scrollY: scrollY,
-        eventType: 'scroll',
-        timestamp: new Date().toISOString(),
-        sessionId: sessionId,
-        ...userInfo
-      };
-
-      // Send scroll data to backend
-      fetch('http://localhost:5000/api/track', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(scrollData),
-      }).catch((error) => console.error('Error sending data:', error));
-    }
-
-    // Event listeners for mouse, touch, and scroll events
-    window.addEventListener('mousemove', trackEvent); // Track mouse movement
-    window.addEventListener('click', trackEvent); // Track mouse clicks
-    window.addEventListener('touchstart', trackEvent); // Track touch start
-    window.addEventListener('touchmove', trackEvent); // Track touch move
-    window.addEventListener('scroll', trackScroll); // Track scroll
-
-    // Optional: Track page load or window resizing events
-    window.addEventListener('load', () => {
-      getRegion().then((region) => {
-        const pageLoadData = {
-          eventType: 'load',
-          timestamp: new Date().toISOString(),
-          sessionId: generateSessionId(),
-          region: region,
-          ...getUserInfo()
-        };
-
-        fetch('http://localhost:5000/api/track', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(pageLoadData),
-        }).catch((error) => console.error('Error sending data:', error));
-      });
-    });
-  })();
-</script>
-`}
+                    {trackingCode}
                   </pre>
                   <button
                     onClick={handleCopyToClipboard}
@@ -199,9 +205,9 @@ const OverviewPage = () => {
             </li>
           </ol>
         </section>
-
-        {/* Features Section */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+        
+      {/* Features Section */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           {/* Heatmaps Card */}
           <div className="bg-white shadow-lg rounded-lg overflow-hidden">
             <img

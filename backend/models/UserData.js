@@ -1,23 +1,19 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const userDataSchema = new mongoose.Schema({
-  sessionId: String,
-  x: Number,
-  y: Number,
-  eventType: String,
-  timestamp: String,
-  os: String,
-  device: String,
-  browser: String,
-  region: String,
-  rageClicks: Number,
-  deadClicks: Number,
-  quickClicks: Number,
-  heatmapData: [{ // Array of heatmap data points
-    x: Number,
-    y: Number,
-    intensity: Number
-  }]
+const UserDataSchema = new mongoose.Schema({
+  projectId: { type: mongoose.Schema.Types.ObjectId, ref: "Project", required: true },
+  sessionId: { type: String, required: true },
+  x: { type: Number, required: true },
+  y: { type: Number, required: true },
+  eventType: { type: String, required: true },
+  timestamp: { type: Date, required: true },
+  os: { type: String },
+  browser: { type: String },
+  device: { type: String },
+  rageClicks: { type: Number, default: 0 },
+  deadClicks: { type: Number, default: 0 },
+  quickClicks: { type: Number, default: 0 },
+  intensity: { type: Number, default: 1 },
 });
 
-module.exports = mongoose.model('UserData', userDataSchema);
+module.exports = mongoose.model("UserData", UserDataSchema);

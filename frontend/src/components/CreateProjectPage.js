@@ -3,59 +3,48 @@ import { useNavigate } from 'react-router-dom';
 import Navbar1 from './Navbar1.js';
 
 const CreateProjectPage = () => {
+  const [trackingCode, setTrackingCode] = useState('');
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
   const [domain, setDomain] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');  // For showing errors to users
-  const [showPopup, setShowPopup] = useState(false);  // For showing popup
+  const [errorMessage, setErrorMessage] = useState(''); 
+  const [showPopup, setShowPopup] = useState(false); 
   const navigate = useNavigate();
 
-  const handleSave = async () => {
-    // Check if all fields are filled
+  const handleSave = async (e) => {
+    e.preventDefault();
+
     if (!name || !url || !domain) {
       setErrorMessage('All fields are required.');
       return;
     }
 
-    // URL Validation
-    const urlPattern = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i;
-    if (!urlPattern.test(url)) {
-      setErrorMessage('Please enter a valid URL.');
-      return;
-    }
+    const projectData = { name, url, domain };
 
-    // Get the token from localStorage
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setErrorMessage('You must be logged in to create a project.');
-      return;
-    }
+    console.log('Payload being sent to server:', projectData);
 
     try {
       const response = await fetch('http://localhost:5000/api/projects/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Add the token to the header
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
-        body: JSON.stringify({ name, url, domain }),  // Send only the project data (no token needed in the body)
+        body: JSON.stringify(projectData),
       });
 
       const data = await response.json();
+      console.log('Server response:', data);
 
-      if (!response.ok) {
-        // Show error message returned from backend
-        setErrorMessage(data.message || 'Something went wrong');
-        return;
+      if (response.ok) {
+        setTrackingCode(data.trackingCode); 
+        setShowPopup(true); 
+      } else {
+        setErrorMessage(data.message || 'Failed to create the project.');
       }
-
-      setShowPopup(true); // Show success popup
-      setTimeout(() => {
-        setShowPopup(false);
-        navigate('/myprojects'); // Redirect after successful creation
-      }, 3000);
     } catch (error) {
-      setErrorMessage('Server error, please try again later.');
+      console.error('Error:', error);
+      setErrorMessage('An unexpected error occurred. Please try again.');
     }
   };
 
@@ -66,7 +55,7 @@ const CreateProjectPage = () => {
     }
 
     console.log('Project deleted');
-    navigate('/projects'); // Navigate back to the Projects page
+    navigate('/projects'); 
   };
 
   return (
