@@ -3,7 +3,7 @@ const Project = require('../models/Project');
 const { authenticateToken } = require('../middleware/authMiddleware');
 const router = express.Router();
 
-// POST route for creating a new project (authentication required)
+// Create a new project
 router.post('/create', authenticateToken, async (req, res) => {
     const { name, url, domain } = req.body;
     const userId = req.user.id; 
@@ -163,7 +163,6 @@ router.post('/create', authenticateToken, async (req, res) => {
         }
     });
 
-
 // GET route to fetch all projects for the authenticated user
 router.get('/', authenticateToken, async (req, res) => {
   try {
@@ -212,7 +211,7 @@ router.delete('/:projectId', authenticateToken, async (req, res) => {
   try {
       // Find the project by ID
       const project = await Project.findById(projectId);
-
+    
       if (!project) {
           return res.status(404).json({ message: 'Project not found' });
       }
