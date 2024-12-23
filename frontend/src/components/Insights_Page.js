@@ -1,7 +1,7 @@
 import React from "react";
 import Navbar2 from "./Navbar2";
 
-const InsightsPage = () => {
+const Insights_Page = () => {
   return (
     <div className="bg-gradient-to-b from-purple-100 to-purple-200 min-h-screen font-sans">
       {/* Navbar */}
@@ -123,4 +123,5 @@ const InsightsPage = () => {
   );
 };
 
-export default InsightsPage;
+export default Insights_Page;
+

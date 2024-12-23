@@ -9,9 +9,9 @@ import MyProjectsPage from './components/MyProjectsPage';
 import OverviewPage from './components/OverviewPage';
 import Dashboard from './components/Dashboard.js';
 import HeatmapPage from './components/Heatmap.js';
-import InsightsPage from './components/InsightsPage.js';
-import CSSCustomiation from './components/CSS-Customization.js';
-import CSSCustomizationPage from './components/CSSCustomizationPage.js';
+import Insights_Page from './components/Insights_Page.js';
+import CSS_Customiation from './components/CSS_Customization.js';
+import CSS_Customization_Page from './components/CSS_Customization_Page.js';
 //import Navbar from './components/Navbar'; // Import Navbar
 //import Footer from './components/Footer'; // Import Footer
 
@@ -32,9 +32,9 @@ const App = () => {
         <Route path="/overview/:id" element={<OverviewPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/heatmap" element={<HeatmapPage />} />
-        <Route path="/insights" element={<InsightsPage />} />
-        <Route path="/css-customization" element={<CSSCustomiation />} />
-        <Route path="/css-customization-page" element={<CSSCustomizationPage />} />
+        <Route path="/insights" element={<Insights_Page />} />
+        <Route path="/css-customization" element={<CSS_Customiation />} />
+        <Route path="/css-customization-page" element={<CSS_Customization_Page />} />
       </Routes>
       
       {/* Footer is included here so it appears on all pages */}

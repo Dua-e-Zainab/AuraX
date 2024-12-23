@@ -2,7 +2,7 @@ import React from "react";
 import Navbar from './Navbar.js';
 import Footer from './Footer.js';
 
-const CSSCustomizationPage = () => {
+const CSS_Customization_Page = () => {
   return (
     <div className="bg-gray-50 text-gray-800">
     <header>
@@ -117,4 +117,4 @@ const CSSCustomizationPage = () => {
   );
 };
 
-export default CSSCustomizationPage;
+export default CSS_Customization_Page;

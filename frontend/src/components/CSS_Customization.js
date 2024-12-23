@@ -1,7 +1,7 @@
 import React from 'react';
 import Navbar2 from './Navbar2.js';
 
-const CSSCustomization = () => {
+const CSS_Customization = () => {
   return (
     <div className="bg-gradient-to-b from-purple-50 to-purple-200 min-h-screen text-gray-800">
     {/* Navbar */}
@@ -79,4 +79,4 @@ const CSSCustomization = () => {
   );
 };
 
-export default CSSCustomization;
+export default CSS_Customization;
