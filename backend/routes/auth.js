@@ -1,4 +1,3 @@
-
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
@@ -16,7 +15,7 @@ router.post('/signup', async (req, res) => {
         }
 
         // Create a new user with plaintext password
-        const newUser = new User({ email, password }); // No hashing
+        const newUser = new User({ email, password }); 
         await newUser.save();
 
         res.status(201).json({ message: 'User registered successfully' });
@@ -63,6 +62,5 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-
 
 module.exports = router;

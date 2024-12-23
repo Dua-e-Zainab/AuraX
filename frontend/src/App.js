@@ -1,6 +1,9 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import LandingPage from './components/LandingPage'; // Import the LandingPage component
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';  // Import the Router and routing components
+import { GoogleOAuthProvider } from '@react-oauth/google';  // Import Google OAuth Provider
+
+// Import your page components
+import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import ProjectPage from './components/ProjectPage';
@@ -17,6 +20,9 @@ import CSS_Customization_Page from './components/CSS_Customization_Page.js';
 
 const App = () => {
   return (
+    // Wrap the entire application with GoogleOAuthProvider
+    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
+
     <Router>
       {/* Navbar is included here so it appears on all pages */}
       {/* <Navbar /> */}
@@ -36,10 +42,14 @@ const App = () => {
         <Route path="/css-customization" element={<CSS_Customiation />} />
         <Route path="/css-customization-page" element={<CSS_Customization_Page />} />
       </Routes>
+
+        {/* External links can be placed outside of Routes */}
+        <Link to="/learn-react">Learn React</Link>
       
       {/* Footer is included here so it appears on all pages */}
       {/* <Footer /> */}
     </Router>
+    </GoogleOAuthProvider>
   );
 };
 
