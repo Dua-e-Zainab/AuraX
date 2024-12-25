@@ -33,6 +33,7 @@ const LoginPage = () => {
     }
   };
 
+  
   const handleGoogleError = () => {
     setError('Google login failed. Please try again.');
   };
@@ -45,7 +46,7 @@ const LoginPage = () => {
   
     const payload = { email, password }; 
     console.log('Sending payload to server:', payload); 
-  
+
     try {
       const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
@@ -55,7 +56,7 @@ const LoginPage = () => {
   
       const data = await response.json();
       console.log('Response from server:', data); 
-  
+
       if (response.ok) {
         localStorage.setItem('token', data.token);
         navigate('/projects');
@@ -71,7 +72,7 @@ const LoginPage = () => {
   };
   
   return (
-    <GoogleOAuthProvider clientId="39996397390-2kc07mu8fhl2pg32s99ata3u1punr2sq.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
       <div className="flex justify-center items-center h-screen bg-gradient-to-br from-purple-200 to-blue-200">
         <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg text-center">
           {/* Logo */}
@@ -84,20 +85,35 @@ const LoginPage = () => {
             <h2 className="text-2xl font-bold text-purple-700">Log in</h2>
           </div>
 
-          {/* Google Login */}
-          <div className="mb-6">
-            <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
-          </div>
-
-          {/* Divider */}
-          <div className="flex items-center justify-center mb-4">
-            <hr className="flex-1 border-t border-purple-400" />
-            <span className="mx-4 text-purple-600">or login with email</span>
-            <hr className="flex-1 border-t border-purple-400" />
-          </div>
-
-          {/* Email/Password Form */}
+          {/* Form */}
           <form onSubmit={handleSubmit}>
+            {/* Google Login */}
+            <div className="mb-6">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                render={(renderProps) => (
+                  <button
+                    type="button"
+                    onClick={renderProps.onClick}
+                    disabled={renderProps.disabled}
+                    className="flex items-center justify-center w-full py-2 border border-purple-400 rounded text-gray-700 font-semibold hover:bg-gray-100 transition"
+                  >
+                    <img src="google.png" alt="Google Logo" className="w-5 h-5 mr-4" />
+                    Sign in with Google
+                  </button>
+                )}
+              />
+            </div>
+
+            {/* Divider */}
+            <div className="flex items-center justify-center mt-6 mb-4">
+              <hr className="flex-1 border-t border-purple-400" />
+              <span className="mx-4 text-purple-600">or login with email</span>
+              <hr className="flex-1 border-t border-purple-400" />
+            </div>
+
+            {/* Email */}
             <div className="mb-4 text-left">
               <label className="block text-purple-700 font-medium">Email Address</label>
               <input
@@ -110,6 +126,7 @@ const LoginPage = () => {
               />
             </div>
 
+            {/* Password */}
             <div className="mb-4 text-left">
               <label className="block text-purple-700 font-medium">Password</label>
               <input
@@ -121,7 +138,7 @@ const LoginPage = () => {
                 required
               />
             </div>
-
+            {/* Remember Me & Forgot Password */}
             <div className="flex justify-between items-center mb-6 text-sm text-purple-600">
               <label className="flex items-center">
                 <input
@@ -132,13 +149,15 @@ const LoginPage = () => {
                 />
                 Remember me
               </label>
-              <Link to="/forgot-password" className="hover:underline">Forgot password?</Link>
+              <Link to="/forgot-password" className="hover:underline">
+                Forgot password?
+              </Link>
             </div>
 
             {/* Submit Button */}
             <button
               type="submit"
-              className={`w-full py-3 rounded bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold hover:from-blue-600 hover:to-purple-600 transition ${
+              className={`w-full py-3 mt-4 rounded bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold hover:from-blue-600 hover:to-purple-600 transition ${
                 loading ? 'bg-gray-500 cursor-not-allowed' : ''
               }`}
               disabled={loading}

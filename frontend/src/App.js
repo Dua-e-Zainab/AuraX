@@ -1,6 +1,8 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { GoogleOAuthProvider } from '@react-oauth/google'; // Import GoogleOAuthProvider
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';  // Import the Router and routing components
+import { GoogleOAuthProvider } from '@react-oauth/google';  // Import Google OAuth Provider
+
+// Import your page components
 import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
@@ -14,15 +16,14 @@ import CSS_Customiation from './components/CSS_Customization.js';
 
 const App = () => {
   return (
-
     // Wrap the entire application with GoogleOAuthProvider
     <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
       <Router>
-        {/* Navbar is included here so it appears on all pages */}
+        {/* Navbar can be added here if you wish */}
         {/* <Navbar /> */}
-        
+
         <Routes>
-          {/* Root path will load the LandingPage */}
+          {/* Define all the routes for your pages */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -31,11 +32,15 @@ const App = () => {
           <Route path="/myprojects" element={<MyProjectsPage />} />
           <Route path="/overview/:id" element={<OverviewPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/newpage" element={<NewPage />} />
           <Route path="/heatmap" element={<HeatmapPage />} />
           <Route path="/css-customization" element={<CSS_Customiation />} />
         </Routes>
+
+        {/* External links can be placed outside of Routes */}
+        <Link to="/learn-react">Learn React</Link>
         
-        {/* Footer is included here so it appears on all pages */}
+        {/* Footer and any global components can be added here */}
         {/* <Footer /> */}
       </Router>
     </GoogleOAuthProvider>
@@ -43,4 +48,3 @@ const App = () => {
 };
 
 export default App;
-

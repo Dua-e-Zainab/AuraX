@@ -57,6 +57,36 @@ app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/track', trackRoutes);
 
+// Add Google OAuth route
+app.post('/api/auth/google', async (req, res) => {
+    const { token } = req.body; // Receive token from frontend
+
+    try {
+        // Verify the token using Google OAuth2 client
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: CLIENT_ID,
+        });
+
+        const payload = ticket.getPayload(); // Extract user details
+        const { sub, email, name, picture } = payload;
+
+        // Respond with the user information
+        res.json({
+            message: 'Google authentication successful',
+            user: {
+                id: sub,
+                email,
+                name,
+                picture,
+            },
+        });
+    } catch (error) {
+        console.error('Error verifying Google token:', error);
+        res.status(401).json({ message: 'Invalid or expired token' });
+    }
+});
+
 // Root route
 app.get('/', (req, res) => {
     res.send('Welcome to the Express Server!');

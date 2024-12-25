@@ -25,7 +25,8 @@ const RegisterPage = () => {
       if (response.ok) {
         localStorage.setItem('token', data.token);
         alert(`Welcome, ${data.user.name}!`);
-        navigate('/projects');
+        console.log('Navigating to login page');
+        navigate('/login');  // Navigate to login page
       } else {
         setError(data.message || 'Google sign-up failed. Please try again.');
       }
@@ -54,7 +55,8 @@ const RegisterPage = () => {
       const response = await axios.post('http://localhost:5000/api/auth/signup', { email, password });
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
-        navigate('/projects');
+        console.log('Navigating to login page');
+        navigate('/login');  // Navigate to login page
       }
     } catch (error) {
       setError(error.response?.data?.message || 'Something went wrong. Please try again.');
