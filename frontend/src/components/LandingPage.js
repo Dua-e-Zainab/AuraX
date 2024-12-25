@@ -10,8 +10,9 @@ const LandingPage = () => {
       {/* Hero Section */}
       <section className="flex flex-col md:flex-row justify-between items-center py-16 px-8 md:px-20 bg-gradient-to-br from-purple-50 to-blue-100 rounded-b-3xl text-center md:text-left">
         <div className="flex-1 max-w-ug space-y-6 md:mr-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-purple-600 leading-tight">
-            Welcome to AuraX: Design Smarter with User Data
+          <h1 className="text-4xl md:text-5xl font-bold text-purple-600 bg-gradient-to-b from-blue-500 to-purple-500 text-transparent bg-clip-text leading-tight">
+            Welcome to AuraX: Design 
+            Smarter with User Data
           </h1>
           <p className="text-lg text-gray-700">
             AuraX analyzes user interactions to reveal patterns and provide design improvements,

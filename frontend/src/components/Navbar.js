@@ -44,7 +44,7 @@ const Navbar = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsLoggedIn(false);
-    navigate('/login');
+    navigate('/');
   };
 
   // Toggle dropdowns
@@ -133,12 +133,12 @@ const Navbar = () => {
               onClick={toggleUserDropdown}
               className="flex items-center space-x-2 text-violet-700 hover:text-indigo-700 transition duration-300"
             >
-              <FaUserCircle className="text-3xl" /><span>User Account</span>
+              <FaUserCircle className="text-3xl" /><span>       </span>
               
             </button>
             {isDropdownOpen && (
               <div
-                className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg rounded-md"
+                className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 shadow-lg rounded-md transition-transform duration-300 ease-out transform scale-y-100 origin-top"
               >
                 <ul>
                 <li>

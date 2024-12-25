@@ -39,7 +39,7 @@ function Dashboard() {
         <h1 className="text-4xl font-bold text-gray-800 mb-6">
         <span className="bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">
           AuraX | Dashboard
-</span>
+        </span>
         </h1>
 
         {/* Top Metrics */}
