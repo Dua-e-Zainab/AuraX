@@ -78,7 +78,7 @@ const LoginPage = () => {
           {/* Logo */}
           <div className="mb-6">
             <img
-              src={`${process.env.PUBLIC_URL}/Logo - AuraX 22.png`}
+              src="Logo2.png"
               alt="AuraX Logo"
               className="mx-auto w-32 mb-4"
             />

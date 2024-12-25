@@ -63,15 +63,17 @@ const Dashboard = (props) => {
 
   return (
     <div className="bg-[#f4f3ff] min-h-screen text-gray-800">
-      <header className="flex justify-between items-center px-8 py-5 bg-white shadow-md">
-        <Navbar2 />
+      {/* Navbar */}
+      <header className="ss">
+      <Navbar2/>
       </header>
 
-      <main className="p-8">
+      {/* Main Dashboard */}
+      <main className="py-12 px-8 md:px-20">
         <h1 className="text-4xl font-bold text-gray-800 mb-6">
-          <span className="bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">
-            AuraX | Dashboard
-          </span>
+        <span className="bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">
+          AuraX | Dashboard
+        </span>
         </h1>
 
         {/* Metrics Section */}

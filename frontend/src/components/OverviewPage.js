@@ -150,7 +150,7 @@ const OverviewPage = () => {
   return (
     <div className="bg-gradient-to-b from-purple-50 to-purple-100 min-h-screen text-gray-800">
       {/* Header Navigation */}
-      <header className="bg-white shadow-md py-4 px-8 flex justify-between items-center">
+      <header className="ss">
         <Navbar2 />
       </header>
 
@@ -158,7 +158,7 @@ const OverviewPage = () => {
       <main className="py-12 px-8 md:px-20">
         {/* Hero Section */}
         <section className="text-left mb-12">
-          <h2 className="text-4xl font-bold text-purple-600">
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">
             Welcome to AuraX - Project Overview
           </h2>
           <p className="text-lg text-gray-600 mt-4">

@@ -1,65 +1,83 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaTrash, FaUsers, FaSync, FaEdit } from 'react-icons/fa';
 import Navbar1 from './Navbar1';
+import ProjectPage from './ProjectPage';
 
 const MyProjects = () => {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [currentProject, setCurrentProject] = useState(null); 
+    const [currentProject, setCurrentProject] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchProjects = async () => {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                setErrorMessage('You must be logged in to view your projects.');
+                setIsLoggedIn(false);
+                setLoading(false);
+                return;
+            }
+
+            setIsLoggedIn(true);
+
             try {
-                const token = localStorage.getItem("token");
-                if (!token) {
-                    console.error("No token found. Ensure the user is logged in.");
-                    return;
-                }
-    
-                const response = await fetch("http://localhost:5000/api/projects", {
+                const response = await fetch('http://localhost:5000/api/projects', {
+                    method: 'GET',
                     headers: {
-                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
                     },
                 });
-    
-                if (response.ok) {
-                    const data = await response.json();
-                    setProjects(data.projects);
-                } else {
-                    console.error("Error fetching projects:", response.statusText);
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    setErrorMessage(errorData.message || 'Failed to fetch projects');
+                    throw new Error(errorData.message || 'Failed to fetch projects');
                 }
+
+                const data = await response.json();
+                setProjects(data.projects);
             } catch (error) {
-                console.error("Error fetching projects:", error);
+                console.error('Error fetching projects:', error);
+                setErrorMessage('Something went wrong while fetching projects.');
             } finally {
                 setLoading(false);
             }
         };
-    
+
         fetchProjects();
     }, []);
-    
-    const handleDelete = async (projectId) => {
-        if (window.confirm('Are you sure you want to delete this project?')) {
-            try {
-                const response = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`,
-                    },
-                });
 
-                if (response.ok) {
-                    setProjects((prevProjects) =>
-                        prevProjects.filter((project) => project._id !== projectId)
-                    );
-                } else {
-                    console.error('Failed to delete project');
-                }
-            } catch (error) {
-                console.error('Error deleting project:', error);
+    const handleDelete = async (projectId) => {
+        const isConfirmed = window.confirm('Are you sure you want to delete this project?');
+        if (!isConfirmed) return;
+
+        const token = localStorage.getItem('token');
+
+        try {
+            const response = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to delete project');
             }
+
+            setProjects(prevProjects => prevProjects.filter(project => project._id !== projectId));
+            alert('Project has been deleted successfully!');
+        } catch (error) {
+            console.error('Failed to delete project:', error);
+            alert('Error deleting project: ' + error.message);
         }
     };
 
@@ -75,10 +93,7 @@ const MyProjects = () => {
 
     const handleEditSubmit = async (e) => {
         e.preventDefault();
-    
-        console.log('Project ID being updated:', currentProject._id); 
-        console.log('Request Payload:', currentProject); 
-    
+
         try {
             const response = await fetch(`http://localhost:5000/api/projects/${currentProject._id}`, {
                 method: 'PUT',
@@ -88,10 +103,7 @@ const MyProjects = () => {
                 },
                 body: JSON.stringify(currentProject),
             });
-    
-            const data = await response.json();
-            console.log('Response from server:', data); 
-    
+
             if (response.ok) {
                 setProjects((prevProjects) =>
                     prevProjects.map((project) =>
@@ -100,13 +112,34 @@ const MyProjects = () => {
                 );
                 setIsEditModalOpen(false);
             } else {
+                const data = await response.json();
                 console.error('Failed to update project:', data.message);
             }
         } catch (error) {
             console.error('Error updating project:', error);
         }
     };
-    
+
+    const handleProjectClick = (projectId) => {
+        navigate(`/overview/${projectId}`);
+    };
+
+    if (loading) {
+        return <p>Loading projects...</p>;
+    }
+
+    if (!isLoggedIn) {
+        return (
+            <div className="h-screen bg-gradient-to-br from-purple-100 to-blue-200 flex justify-center items-center">
+                <p>{errorMessage || 'Please log in to view your projects.'}</p>
+            </div>
+        );
+    }
+
+    if (projects.length === 0) {
+        return <ProjectPage />;
+    }
+
     return (
         <div className="h-screen bg-gradient-to-br from-purple-100 to-blue-200">
             <Navbar1 />
@@ -128,69 +161,59 @@ const MyProjects = () => {
                     </button>
                 </div>
 
-                {loading ? (
-                    <p className="text-center text-lg text-purple-700 font-medium">Loading projects...</p>
-                ) : projects.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {projects.map((project) => (
-                            <div
-                                key={project._id}
-                                className="bg-white shadow-lg rounded-lg p-6 flex flex-col space-y-4 transition hover:shadow-xl cursor-pointer"
-                            >
-                                <Link
-                                    to={`/overview/${project._id}`}
-                                    onClick={() => {
-                                        localStorage.setItem('projectId', project._id);  
-                                        localStorage.setItem('projectUrl', project.url); 
-                                    }}
-                                    className="flex items-center space-x-4"
-                                >
-                                    <div className="w-12 h-12 bg-purple-200 rounded-full flex items-center justify-center text-purple-600">
-                                        <FaUsers size={24} />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-xl font-semibold text-gray-800">{project.name}</h2>
-                                        <a
-                                            href={project.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-sm text-blue-500 hover:underline"
-                                        >
-                                            {project.url}
-                                        </a>
-                                    </div>
-                                </Link>
-
-                                <div className="flex justify-between border-t pt-4 text-gray-600">
-                                    <button
-                                        className="flex items-center space-x-2 hover:text-green-600"
-                                        onClick={() => handleEditClick(project)}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {projects.map((project) => (
+                        <div
+                            key={project._id}
+                            className="bg-white shadow-lg rounded-lg p-6 flex flex-col space-y-4 transition hover:shadow-xl cursor-pointer"
+                            onClick={() => handleProjectClick(project._id)}
+                        >
+                            <div className="flex items-center space-x-4">
+                                <div className="w-12 h-12 bg-purple-200 rounded-full flex items-center justify-center text-purple-600">
+                                    <FaUsers size={24} />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-semibold text-gray-800">
+                                        {project.name}
+                                    </h2>
+                                    <a
+                                        href={project.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-sm text-blue-500 hover:underline"
                                     >
-                                        <FaEdit />
-                                        <span>Edit</span>
-                                    </button>
-                                    <button
-                                        className="flex items-center space-x-2 hover:text-red-600"
-                                        onClick={() => handleDelete(project._id)}
-                                    >
-                                        <FaTrash />
-                                        <span>Delete</span>
-                                    </button>
+                                        {project.url}
+                                    </a>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="text-left mt-6">
-                        <h2 className="text-lg font-bold text-purple-700">No Projects Found</h2>
-                        <p className="text-gray-600 mt-2">
-                            It looks like you haven’t created any projects yet. Start by creating one now!
-                        </p>
-                    </div>
-                )}
+                            <div className="flex justify-between border-t pt-4 text-gray-600">
+                                <button
+                                    className="flex items-center space-x-2 hover:text-green-600"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEditClick(project);
+                                    }}
+                                >
+                                    <FaEdit />
+                                    <span>Edit</span>
+                                </button>
+                                <button
+                                    className="flex items-center space-x-2 hover:text-red-600"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleDelete(project._id);
+                                    }}
+                                >
+                                    <FaTrash />
+                                    <span>Delete</span>
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
 
-            {/* Edit Modal */}
             {isEditModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white shadow-2xl rounded-lg p-8 w-96">

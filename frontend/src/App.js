@@ -13,6 +13,7 @@ import OverviewPage from './components/OverviewPage';
 import Dashboard from './components/Dashboard.js';
 import HeatmapPage from './components/Heatmap.js';
 import CSS_Customiation from './components/CSS_Customization.js';
+import InsightsPage from './components/InsightsPage.js';
 
 const App = () => {
   return (
@@ -32,12 +33,10 @@ const App = () => {
           <Route path="/myprojects" element={<MyProjectsPage />} />
           <Route path="/overview/:id" element={<OverviewPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/insights"  element={<InsightsPage />}/>
           <Route path="/heatmap" element={<HeatmapPage />} />
           <Route path="/css-customization" element={<CSS_Customiation />} />
         </Routes>
-
-        {/* External links can be placed outside of Routes */}
-        {/* <Link to="/learn-react">Learn React</Link> */}
         
         {/* Footer and any global components can be added here */}
         {/* <Footer /> */}
