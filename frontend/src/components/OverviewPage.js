@@ -150,7 +150,7 @@ const OverviewPage = () => {
   return (
     <div className="bg-gradient-to-b from-purple-50 to-purple-100 min-h-screen text-gray-800">
       {/* Header Navigation */}
-      <header className="bg-white shadow-md py-4 px-8 flex justify-between items-center">
+      <header className="ss">
         <Navbar2 />
       </header>
 

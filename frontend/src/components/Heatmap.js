@@ -161,7 +161,7 @@ const HeatmapPage = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-200 to-blue-200 flex flex-col">
+    <div className="bg-[#f4f3ff] min-h-screen text-gray-800">
       {/* Navbar */}
       <Navbar2 />
 

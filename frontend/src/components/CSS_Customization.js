@@ -188,7 +188,7 @@ const CSSCustomization = () => {
     <div className="bg-gradient-to-b from-purple-50 to-purple-200 min-h-screen text-gray-800">
       <Navbar2 />
 
-      <div className="p-8">
+      <div className="py-12 px-8 md:px-20">
         <h1 className="text-4xl font-bold mb-6">
           <span className="bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">
             AuraX | CSS Customization
