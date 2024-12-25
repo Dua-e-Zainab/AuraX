@@ -161,7 +161,7 @@ const HeatmapPage = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-200 to-blue-200 flex flex-col">
+    <div className="bg-[#f4f3ff] min-h-screen text-gray-800">
       {/* Navbar */}
       <Navbar2 />
 
@@ -208,7 +208,7 @@ const HeatmapPage = () => {
           {/* Page Header */}
           <div className="flex items-center justify-between mb-3 mt-3">
             <h1
-              className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-700 to-blue-500"
+              className="text-4xl font-bold text-transparent bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text"
             >
               AuraX | Heatmap
             </h1>
