@@ -77,4 +77,74 @@ router.get('/heatmap/:projectId', authenticateToken, async (req, res) => {
   }
 });
 
+
+// Dashboard Data Aggregation Endpoint
+router.get('/dashboard/:projectId', authenticateToken, async (req, res) => {
+  const { projectId } = req.params;
+
+  try {
+    console.log("Received projectId:", projectId);
+
+    // Sessions
+    const sessions = await UserData.distinct("sessionId", { projectId });
+
+    // Total Clicks
+    const totalClicks = await UserData.countDocuments({ projectId, eventType: "click" });
+
+    // Rage Clicks
+    const rageClicks = await UserData.countDocuments({ projectId, rageClicks: { $gt: 0 } });
+
+    // Dead Clicks
+    const deadClicks = await UserData.countDocuments({ projectId, deadClicks: { $gt: 0 } });
+
+    // Quick Clicks
+    const quickClicks = await UserData.countDocuments({ projectId, quickClicks: { $gt: 0 } });
+
+    // OS Distribution
+    const osData = await UserData.aggregate([
+      { $match: { projectId } },
+      { $group: { _id: "$os", count: { $sum: 1 } } },
+      { $project: { os: "$_id", count: 1, _id: 0 } }
+    ]);
+
+    // Browser Distribution
+    const browserData = await UserData.aggregate([
+      { $match: { projectId } },
+      { $group: { _id: "$browser", count: { $sum: 1 } } },
+      { $project: { browser: "$_id", count: 1, _id: 0 } }
+    ]);
+
+    // Device Distribution
+    const deviceData = await UserData.aggregate([
+      { $match: { projectId } },
+      { $group: { _id: "$device", count: { $sum: 1 } } },
+      { $project: { device: "$_id", count: 1, _id: 0 } }
+    ]);
+
+    // Return aggregated data
+    res.json({
+      success: true,
+      metrics: [
+        { title: "Sessions", value: sessions.length, note: "" },
+        { title: "Total Clicks", value: totalClicks, note: "" }
+      ],
+      insights: [
+        { label: "Rage Clicks", value: `${((rageClicks / totalClicks) * 100).toFixed(2)}%` },
+        { label: "Dead Clicks", value: `${((deadClicks / totalClicks) * 100).toFixed(2)}%` },
+        { label: "Quick Clicks", value: `${((quickClicks / totalClicks) * 100).toFixed(2)}%` }
+      ],
+      distributions: {
+        os: osData,
+        browsers: browserData,
+        devices: deviceData
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching dashboard data:", error.message);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+
+
 module.exports = router;
