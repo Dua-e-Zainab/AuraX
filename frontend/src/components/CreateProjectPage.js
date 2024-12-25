@@ -7,8 +7,8 @@ const CreateProjectPage = () => {
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
   const [domain, setDomain] = useState('');
-  const [errorMessage, setErrorMessage] = useState(''); 
-  const [showPopup, setShowPopup] = useState(false); 
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showPopup, setShowPopup] = useState(false);
   const navigate = useNavigate();
 
   const handleSave = async (e) => {
@@ -37,8 +37,13 @@ const CreateProjectPage = () => {
       console.log('Server response:', data);
 
       if (response.ok) {
-        setTrackingCode(data.trackingCode); 
-        setShowPopup(true); 
+        setTrackingCode(data.trackingCode);
+        setShowPopup(true);
+
+        // Redirect to "My Projects" page after a delay
+        setTimeout(() => {
+          navigate('/myprojects'); // Adjust this path to match your route configuration
+        }, 2000); // 2-second delay before redirection
       } else {
         setErrorMessage(data.message || 'Failed to create the project.');
       }
@@ -55,7 +60,7 @@ const CreateProjectPage = () => {
     }
 
     console.log('Project deleted');
-    navigate('/projects'); 
+    navigate('/projects');
   };
 
   return (
@@ -127,7 +132,8 @@ const CreateProjectPage = () => {
                 <button
                   type="button"
                   onClick={handleDelete}
-                  className="px-5 py-2 text-white bg-gradient-to-r from-blue-500 to-purple-500 rounded hover:from-blue-600 hover:to-purple-600 transition">
+                  className="px-5 py-2 text-white bg-gradient-to-r from-blue-500 to-purple-500 rounded hover:from-blue-600 hover:to-purple-600 transition"
+                >
                   Delete this project
                 </button>
               </div>
@@ -161,7 +167,7 @@ const CreateProjectPage = () => {
             >
               &times;
             </button>
-    
+
             {/* Icon */}
             <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center rounded-full bg-purple-100">
               <svg
@@ -173,10 +179,10 @@ const CreateProjectPage = () => {
                 <path d="M12 0C5.4 0 0 5.4 0 12c0 6.6 5.4 12 12 12s12-5.4 12-12C24 5.4 18.6 0 12 0zm5.1 9.3l-6 6c-.3.3-.7.5-1.1.5-.4 0-.8-.2-1.1-.5l-3-3c-.3-.3-.3-.8 0-1.1s.8-.3 1.1 0l2.4 2.4 5.4-5.4c.3-.3.8-.3 1.1 0 .3.4.3.9-.1 1.1z" />
               </svg>
             </div>
-    
+
             {/* Message */}
             <p className="text-gray-700 text-lg">
-              Project created successfully! You can now view or manage your project.
+              Project created successfully! You will be redirected shortly...
             </p>
           </div>
         </div>

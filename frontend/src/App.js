@@ -10,6 +10,7 @@ import MyProjectsPage from './components/MyProjectsPage';
 import OverviewPage from './components/OverviewPage';
 import Dashboard from './components/Dashboard.js';
 import HeatmapPage from './components/Heatmap.js';
+import CSS_Customiation from './components/CSS_Customization.js';
 
 const App = () => {
   return (
@@ -31,6 +32,7 @@ const App = () => {
           <Route path="/overview/:id" element={<OverviewPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/heatmap" element={<HeatmapPage />} />
+          <Route path="/css-customization" element={<CSS_Customiation />} />
         </Routes>
         
         {/* Footer is included here so it appears on all pages */}
