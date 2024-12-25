@@ -10,11 +10,9 @@ import ProjectPage from './components/ProjectPage';
 import CreateProjectPage from './components/CreateProjectPage';
 import MyProjectsPage from './components/MyProjectsPage';
 import OverviewPage from './components/OverviewPage';
-import Dashboard from './components/Dashboard';
-import NewPage from './components/NewPage';
-import HeatmapPage from './components/Heatmap';
-// import Navbar from './components/Navbar'; // Uncomment and import Navbar if needed
-// import Footer from './components/Footer'; // Uncomment and import Footer if needed
+import Dashboard from './components/Dashboard.js';
+import HeatmapPage from './components/Heatmap.js';
+import CSS_Customiation from './components/CSS_Customization.js';
 
 const App = () => {
   return (
@@ -36,6 +34,7 @@ const App = () => {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/newpage" element={<NewPage />} />
           <Route path="/heatmap" element={<HeatmapPage />} />
+          <Route path="/css-customization" element={<CSS_Customiation />} />
         </Routes>
 
         {/* External links can be placed outside of Routes */}

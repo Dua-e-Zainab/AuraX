@@ -18,23 +18,34 @@ const mongoURI = process.env.MONGO_URI;
 const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID; // Ensure this is in your .env file
 const client = new OAuth2Client(CLIENT_ID);
 
-// Middleware
+// Middleware for CORS
 app.use(cors({
     origin: [
-        'http://localhost:3000',            // Your local React app
-        'http://127.0.0.1:5500',           // Local file server (if using file-based approach)
-        'https://nzxtsol.com',             // Allow external origin (your iframe site)
-        'https://nzxtsol.com/aurax',       // Specific endpoint (if needed)
+        'http://127.0.0.1:5501',
+        'http://localhost:5173',
+        'http://localhost:3000',
+        'http://127.0.0.1:5500',
+        'http://localhost:5174',
+        'https://nzxtsol.com'
     ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Allow all necessary methods
-    allowedHeaders: ['Content-Type', 'Authorization'],    // Allowed headers for CORS
-    credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    optionsSuccessStatus: 200,
 }));
 
-app.use(express.json());
+app.options('*', cors());
 
-// Explicitly handle preflight OPTIONS requests (necessary for CORS)
-app.options('*', cors()); // Allow OPTIONS for all routes
+// Middleware for setting Content-Security-Policy
+app.use((req, res, next) => {
+    res.setHeader(
+        'Content-Security-Policy',
+        "frame-src 'self' http://127.0.0.1:5501 http://localhost:5173 http://localhost:3000 http://127.0.0.1:5500 http://localhost:5174 https://nzxtsol.com;"
+    );
+    next();
+});
+
+app.use(express.json());
 
 // MongoDB connection
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
