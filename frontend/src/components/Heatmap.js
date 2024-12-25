@@ -186,14 +186,6 @@ const HeatmapPage = () => {
             <li className="font-bold bg-gradient-to-r from-blue-500 to-purple-500 text-white p-2 rounded-lg">
               Home Page
             </li>
-            <li className="hover:text-purple-700 p-2 cursor-pointer">Returning users</li>
-            <li className="hover:text-purple-700 p-2 cursor-pointer">Contact page</li>
-            <li className="hover:text-purple-700 p-2 cursor-pointer">
-              Products page - 10 days ago
-            </li>
-            <li className="hover:text-purple-700 p-2 cursor-pointer">
-              Products page - 1 month ago
-            </li>
             
           </ul>
           {/* Total Clicks */}

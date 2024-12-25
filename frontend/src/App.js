@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';  // Import the Router and routing components
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';  // Import the Router and routing components
 import { GoogleOAuthProvider } from '@react-oauth/google';  // Import Google OAuth Provider
 
 // Import your page components
@@ -32,13 +32,12 @@ const App = () => {
           <Route path="/myprojects" element={<MyProjectsPage />} />
           <Route path="/overview/:id" element={<OverviewPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/newpage" element={<NewPage />} />
           <Route path="/heatmap" element={<HeatmapPage />} />
           <Route path="/css-customization" element={<CSS_Customiation />} />
         </Routes>
 
         {/* External links can be placed outside of Routes */}
-        <Link to="/learn-react">Learn React</Link>
+        {/* <Link to="/learn-react">Learn React</Link> */}
         
         {/* Footer and any global components can be added here */}
         {/* <Footer /> */}
