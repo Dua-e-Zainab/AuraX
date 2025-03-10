@@ -74,8 +74,8 @@ const CreateProjectPage = () => {
           <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
             <h1 className="text-3xl font-semibold text-purple-600 mb-4">Get Started</h1>
             <p className="text-sm text-gray-500 mb-6">
-              Project ID: <span className="font-semibold">8234127893</span>{' '}
-              <button className="text-blue-500 underline">Copy</button>
+              {/* Project ID: <span className="font-semibold">8234127893</span>{' '} */}
+              {/* <button className="text-blue-500 underline">Copy</button> */}
             </p>
 
             {/* Display Error Message */}
