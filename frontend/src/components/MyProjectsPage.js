@@ -121,6 +121,10 @@ const MyProjects = () => {
     };
 
     const handleProjectClick = (projectId) => {
+        // Save the selected projectId to localStorage
+        localStorage.setItem("projectId", projectId);
+
+        // Navigate to the project overview page
         navigate(`/overview/${projectId}`);
     };
 
