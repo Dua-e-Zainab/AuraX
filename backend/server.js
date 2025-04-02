@@ -26,7 +26,7 @@ app.use(cors({
         'http://127.0.0.1:5500',           // Local file server (if using file-based approach)
         'https://nzxtsol.com',             // Allow external origin (your iframe site)
         'https://nzxtsol.com/aurax',       // Specific endpoint (if needed)
-        'http://127.0.0.1:5501',
+        'http://127.0.0.1:5500/#',
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Allow all necessary methods
     allowedHeaders: ['Content-Type', 'Authorization'],    // Allowed headers for CORS
