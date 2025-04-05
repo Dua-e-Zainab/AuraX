@@ -12,7 +12,8 @@ const HeatmapPage = () => {
   const iframeRef = useRef(null);
   const heatmapInstance = useRef(null);
   const [scrollY, setScrollY] = useState(0);
-  const [iframeWidth, setIframeWidth] = useState("100%"); // Default iframe width
+  const [loading, setLoading] = useState(true);
+  const [iframeWidth, setIframeWidth] = useState("100%");
 
   // Fetch project URL
   useEffect(() => {
@@ -31,47 +32,40 @@ const HeatmapPage = () => {
         }
       } catch (err) {
         console.error("Failed to fetch project URL:", err);
+      } finally {
+        setLoading(false); // Ensure loading state is updated
       }
     };
 
     fetchProjectUrl();
   }, [projectId]);
 
-  // Fetch heatmap data
+  // **Ensure hook always runs, even if projectId is missing**
   useEffect(() => {
     const fetchHeatmapData = async () => {
-      if (!projectId) {
-        console.error("Project ID not found.");
-        return;
-      }
+      if (!projectId) return; // Still runs, just does nothing
 
       try {
         const token = localStorage.getItem("token");
-        if (!token) {
-          console.error("No token found. Please log in.");
-          return;
-        }
+        if (!token) return;
 
         const response = await fetch(
           `http://localhost:5000/api/track/heatmap/${projectId}`,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
 
-        if (!response.ok) {
-          throw new Error(`Error fetching heatmap data: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`Error fetching heatmap data: ${response.statusText}`);
 
         const data = await response.json();
-        const transformedData = data.data.map((point) => ({
-          x: point.x,
-          y: point.y,
-          value: point.intensity,
-        }));
-        setHeatmapData(transformedData);
+        setHeatmapData(
+          data.data.map((point) => ({
+            x: point.x,
+            y: point.y,
+            value: point.intensity,
+          }))
+        );
       } catch (error) {
         console.error("Error fetching heatmap data:", error.message);
       }
@@ -80,15 +74,12 @@ const HeatmapPage = () => {
     fetchHeatmapData();
   }, [projectId]);
 
-  // Initialize heatmap
+  // **Always runs, only updates when iframeLoaded and heatmapData exist**
   useEffect(() => {
     if (!iframeLoaded || heatmapData.length === 0) return;
 
     const heatmapContainer = document.getElementById("heatmap-container");
-    if (!heatmapContainer) {
-      console.error("Heatmap container not found.");
-      return;
-    }
+    if (!heatmapContainer) return;
 
     if (!heatmapInstance.current) {
       heatmapInstance.current = h337.create({
@@ -104,13 +95,13 @@ const HeatmapPage = () => {
       max: Math.max(...heatmapData.map((point) => point.value), 10),
       data: heatmapData.map((point) => ({
         x: point.x,
-        y: point.y - scrollY, // Adjust for iframe scroll
+        y: point.y - scrollY,
         value: point.value,
       })),
     });
   }, [iframeLoaded, heatmapData, scrollY]);
 
-  // Listen for messages from the iframe
+  // **Always runs to listen for messages**
   useEffect(() => {
     const handleMessage = (event) => {
       if (!projectUrl) return;
@@ -120,10 +111,10 @@ const HeatmapPage = () => {
 
       const { type, scrollY, contentWidth } = event.data;
       if (type === "SCROLL_EVENT") {
-        setScrollY(scrollY); // Update the scroll offset dynamically
+        setScrollY(scrollY);
       }
       if (type === "CONTENT_WIDTH") {
-        setIframeWidth(`${contentWidth}px`); // Adjust iframe width dynamically
+        setIframeWidth(`${contentWidth}px`);
       }
     };
 
@@ -131,56 +122,38 @@ const HeatmapPage = () => {
     return () => window.removeEventListener("message", handleMessage);
   }, [projectUrl]);
 
-  // Handle hover events on the heatmap
-  const handleHeatmapHover = (e) => {
-    const tooltip = document.getElementById("heatmap-tooltip");
-    const heatmapContainer = document.getElementById("heatmap-container");
-
-    if (!heatmapContainer || !heatmapInstance.current) return;
-
-    const heatmapRect = heatmapContainer.getBoundingClientRect();
-    const mouseX = e.clientX - heatmapRect.left;
-    const mouseY = e.clientY - heatmapRect.top;
-
-    const value = heatmapInstance.current.getValueAt({ x: mouseX, y: mouseY });
-
-    if (value > 0) {
-      tooltip.style.display = "block";
-      tooltip.style.left = `${e.pageX + 10}px`;
-      tooltip.style.top = `${e.pageY + 10}px`;
-      tooltip.innerText = `Clicks: ${value}`;
-    } else {
-      tooltip.style.display = "none";
-    }
-  };
+  // **Ensure the return comes after all hooks**
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="border-t-4 border-b-4 border-purple-500 w-16 h-16 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#f4f3ff] min-h-screen text-gray-800">
       <Navbar2 />
 
       <div className="relative w-full h-screen">
-        {/* Heatmap Container */}
         <div
           id="heatmap-container"
           className="absolute top-0 left-0 w-full h-full pointer-events-none z-10"
-          onMouseMove={(e) => handleHeatmapHover(e)}
         ></div>
 
-        {/* Tooltip for displaying click details */}
         <div
           id="heatmap-tooltip"
           className="absolute bg-tooltipBg text-white text-xs rounded px-2 py-1 pointer-events-none hidden z-20 animate-fadeIn"
           style={{ display: "none" }}
         ></div>
 
-        {/* Iframe for Project Content */}
         <iframe
           ref={iframeRef}
           src={projectUrl}
           className="absolute top-0 left-0 z-0"
           style={{
-            width: "100%", // Make iframe take full width
-            height: "100%", // Make iframe take full height
+            width: "100%",
+            height: "100%",
           }}
           onLoad={() => setIframeLoaded(true)}
           sandbox="allow-same-origin allow-scripts"
