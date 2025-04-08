@@ -14,6 +14,10 @@ import Dashboard from './components/Dashboard.js';
 import HeatmapPage from './components/Heatmap.js';
 import CSS_Customiation from './components/CSS_Customization.js';
 import InsightsPage from './components/InsightsPage.js';
+import HeatmapIntroPage from './components/heatmap_page.js';
+import CSSCustomizationPage from './components/CSS_Customization_Page';
+import InsightsIntroPage from './components/insights_page.js';
+
 
 const App = () => {
   return (
@@ -36,6 +40,9 @@ const App = () => {
           <Route path="/insights"  element={<InsightsPage />}/>
           <Route path="/heatmap" element={<HeatmapPage />} />
           <Route path="/css-customization" element={<CSS_Customiation />} />
+          <Route path="/heatmap-page" element={<HeatmapIntroPage />} />
+          <Route path="/css-customization-page" element={<CSSCustomizationPage />} />
+          <Route path="/insights-page" element={<InsightsIntroPage/>} />
         </Routes>
         
         {/* Footer and any global components can be added here */}
