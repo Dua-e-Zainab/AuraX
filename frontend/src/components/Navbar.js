@@ -92,7 +92,7 @@ const Navbar = () => {
               <ul>
                 <li>
                   <a
-                    href="/heatmaps"
+                    href="/heatmap-page"
                     className="block px-4 py-2 text-gray-700 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white transition duration-300 rounded-md"
                   >
                     Heatmaps
@@ -108,7 +108,7 @@ const Navbar = () => {
                 </li>
                 <li>
                   <a
-                    href="/insights"
+                    href="/insights-page"
                     className="block px-4 py-2 text-gray-700 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white transition duration-300 rounded-md"
                   >
                     Insights
