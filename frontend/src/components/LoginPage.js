@@ -59,7 +59,7 @@ const LoginPage = () => {
 
       if (response.ok) {
         localStorage.setItem('token', data.token);
-        navigate('/projects');
+        navigate('/myprojects');
       } else {
         setError(data.message || 'Login failed. Please try again.');
       }

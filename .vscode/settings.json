@@ -1,0 +1,17 @@
+{
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "javascript.format.enable": true,
+    "mochaExplorer.files": "tests/**/*.test.js",
+    "mochaExplorer.require": "esm",// Only if you're using ES modules
+
+    
+    "javascript.suggest.autoImports": true,
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "editor.tabSize": 2,
+    "editor.detectIndentation": false,
+    "eslint.validate": ["javascript"],
+    "files.associations": {
+      "*.test.js": "javascript"
+    }
+  }
