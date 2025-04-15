@@ -149,7 +149,7 @@ const HeatmapPage = () => {
 
         <iframe
           ref={iframeRef}
-          src={projectUrl}
+          src={"http://127.0.0.1:5501/anon-ecommerce-website/index.html"}
           className="absolute top-0 left-0 z-0"
           style={{
             width: "100%",

@@ -3,13 +3,13 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const app = require('../app'); 
 const User = require('../models/User');
-
+jest.setTimeout(30000);
 describe('Auth API Tests', () => {
+
     beforeAll(async () => {
         // Connect to the test database
         await mongoose.connect(process.env.MONGO_URI || 'mongodb+srv://hassaan19:2xopP83rB@aurax.idvo9.mongodb.net/myDatabase?retryWrites=true&w=majority', {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
+           
         });
 
         // Seed the database with a test user
@@ -17,11 +17,11 @@ describe('Auth API Tests', () => {
         await User.create({ email: 'testuser@example.com', password: hashedPassword });
     });
 
-    // afterAll(async () => {
-    //     // Clean up database and close connection
-    //     await User.deleteMany();
-    //     await mongoose.connection.close();
-    // });
+    afterAll(async () => {
+        // // Clean up database and close connection
+        // await User.deleteMany();
+        await mongoose.connection.close();
+    });
 
     describe('Signup Route', () => {
         it('should create a new user successfully', async () => {
