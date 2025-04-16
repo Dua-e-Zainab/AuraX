@@ -1,24 +1,38 @@
-
 const express = require('express');
 const Project = require('../models/Project');
 const { authenticateToken } = require('../middleware/authMiddleware');
 const router = express.Router();
+const mongoose = require('mongoose');
 
 // Create a new project
 router.post('/create', authenticateToken, async (req, res) => {
     const { name, url, domain } = req.body;
-    const userId = req.user.id; 
+    const userId = req.user.id;
 
     try {
         // Validation: Ensure all fields are provided
         if (!name || !url || !domain) {
             return res.status(400).json({ message: 'All fields are required.' });
+            console.log('Validation failed: Missing fields', { name, url, domain });
         }
 
-        // Check for existing project with the same URL
-        const existingProject = await Project.findOne({ url: url.toLowerCase() });
-        if (existingProject) {
+        // Check for existing project with the same URL (case insensitive)
+        const existingProjectByUrl = await Project.findOne({ 
+            url: url.toLowerCase(),
+            owner: userId
+        });
+        if (existingProjectByUrl) {
             return res.status(400).json({ message: 'Project with this URL already exists.' });
+            console
+        }
+
+        // Check for existing project with the same name for this user
+        const existingProjectByName = await Project.findOne({
+            name: { $regex: new RegExp(`^${name}$`, 'i') }, // Case insensitive match
+            owner: userId
+        });
+        if (existingProjectByName) {
+            return res.status(400).json({ message: 'You already have a project with this name.' });
         }
 
         // Save the new project in the database
@@ -28,13 +42,14 @@ router.post('/create', authenticateToken, async (req, res) => {
             domain,
             owner: userId,
         });
-        const savedProject = await newProject.save(); 
+        
+        const savedProject = await newProject.save();
 
         // Tracking snippet for the user
         const trackingSnippet = `
         <script>
           (function () {
-            const projectId = "${savedProject._id}"; // Dynamically inject the actual project ID
+            const projectId = "${savedProject._id}";
             const sessionId = (() => {
               let sessionId = localStorage.getItem('sessionId');
               if (!sessionId) {
@@ -156,15 +171,14 @@ router.post('/create', authenticateToken, async (req, res) => {
               }).catch(error => console.error("Error sending data:", error));
             });
 
-            // Track iframe scroll events and notify parent
             window.addEventListener("scroll", () => {
               parent.postMessage(
                 {
                   type: "SCROLL_EVENT",
                   scrollX: window.scrollX, 
-                  scrollY: window.scrollY, // Current vertical scroll position
+                  scrollY: window.scrollY,
                 },
-                "*" // Replace "*" with the parent's origin for security
+                "*"
               );
             });
           })();
@@ -175,123 +189,227 @@ router.post('/create', authenticateToken, async (req, res) => {
           message: 'Project created successfully',
           project: savedProject,
           trackingCode: trackingSnippet, 
-        });        
+        });
           
-        } catch (error) {
-            console.error('Error creating project:', error);
-            res.status(500).json({ message: 'Server error', error: error.message });
+    } catch (error) {
+        console.error('Error creating project:', error);
+        
+        // Handle duplicate key errors (though our checks should prevent them)
+        if (error.code === 11000) {
+            return res.status(400).json({ 
+                message: 'Project with this name or URL already exists.' 
+            });
         }
-    });
+        
+        // Handle validation errors
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ 
+                message: 'Validation failed',
+                errors: error.errors 
+            });
+        }
+        
+        res.status(500).json({ 
+            message: 'Server error', 
+            error: error.message 
+        });
+    }
+});
 
 // GET route to fetch all projects for the authenticated user
 router.get('/', authenticateToken, async (req, res) => {
-  try {
-      const userId = req.user.id; 
-      
-      // Find all projects created by the logged-in user
-      const projects = await Project.find({ owner: userId });
+    try {
+        const userId = req.user.id;
+        
+        // Find all projects created by the logged-in user
+        const projects = await Project.find({ owner: userId });
 
-      if (!projects.length) {
-          return res.status(404).json({ success: false, message: 'No projects found for this user.' });
-      }
-
-      res.status(200).json({ success: true, projects });
-  } catch (error) {
-      console.error('Error fetching user projects:', error.message);
-      res.status(500).json({ success: false, message: 'Server error.' });
-  }
+        res.status(200).json({ 
+            success: true, 
+            projects: projects || [] // Return empty array if no projects
+        });
+    } catch (error) {
+        console.error('Error fetching user projects:', error.message);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server error while fetching projects.' 
+        });
+    }
 });
 
 // GET route to fetch a specific project by its ID for the authenticated user
 router.get('/:projectId', authenticateToken, async (req, res) => {
-  const { projectId } = req.params;
+    const { projectId } = req.params;
 
-  try {
-      const userId = req.user.id;
+    try {
+        // Validate project ID format
+        if (!mongoose.Types.ObjectId.isValid(projectId)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Invalid project ID format.' 
+            });
+        }
 
-      // Find the project by ID and ensure it belongs to the logged-in user
-      const project = await Project.findOne({ _id: projectId, owner: userId });
+        const userId = req.user.id;
+        const project = await Project.findOne({ 
+            _id: projectId, 
+            owner: userId 
+        });
 
-      if (!project) {
-          return res.status(404).json({ success: false, message: 'Project not found or unauthorized access.' });
-      }
+        if (!project) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Project not found or unauthorized access.' 
+            });
+        }
 
-      res.status(200).json({ success: true, project });
-  } catch (error) {
-      console.error('Error fetching the project:', error.message);
-      res.status(500).json({ success: false, message: 'Server error.' });
-  }
+        res.status(200).json({ 
+            success: true, 
+            project 
+        });
+    } catch (error) {
+        console.error('Error fetching the project:', error.message);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server error while fetching project.' 
+        });
+    }
 });
 
-// DELETE route for deleting a project (authentication required)
+// DELETE route for deleting a project
 router.delete('/:projectId', authenticateToken, async (req, res) => {
-  const { projectId } = req.params;
-  const userId = req.user.id; 
+    const { projectId } = req.params;
+    const userId = req.user.id;
 
-  try {
-      // Find the project by ID
-      const project = await Project.findById(projectId);
-    
-      if (!project) {
-          return res.status(404).json({ message: 'Project not found' });
-      }
+    try {
+        // Validate project ID format
+        if (!mongoose.Types.ObjectId.isValid(projectId)) {
+            return res.status(400).json({ 
+                message: 'Invalid project ID format.' 
+            });
+        }
 
-      // Ensure the logged-in user is the project owner
-      if (project.owner.toString() !== userId) {
-          return res.status(403).json({ message: 'You are not authorized to delete this project.' });
-      }
+        const project = await Project.findById(projectId);
+        if (!project) {
+            return res.status(404).json({ 
+                message: 'Project not found' 
+            });
+        }
 
-      // Delete the project
-      await Project.findByIdAndDelete(projectId);
-      res.status(200).json({ message: 'Project deleted successfully' });
-  } catch (error) {
-      console.error('Error deleting project:', error.message);
-      res.status(500).json({ message: 'Failed to delete project', error: error.message });
-  }
+        if (project.owner.toString() !== userId) {
+            return res.status(403).json({ 
+                message: 'Unauthorized to delete this project.' 
+            });
+        }
+
+        await Project.findByIdAndDelete(projectId);
+        res.status(200).json({ 
+            message: 'Project deleted successfully.' 
+        });
+    } catch (error) {
+        console.error('Error deleting project:', error.message);
+        res.status(500).json({ 
+            message: 'Server error while deleting project.', 
+            error: error.message 
+        });
+    }
 });
 
-const mongoose = require('mongoose');
-
+// Update a project
 router.put('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { name, url, domain } = req.body;
 
     try {
-        console.log('Received PUT request for Project ID:', id);
-
-        // Check if the ID is valid
+        // Validate project ID format
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            console.log('Invalid Project ID format');
-            return res.status(400).json({ message: 'Invalid project ID format' });
+            return res.status(400).json({ 
+                message: 'Invalid project ID format' 
+            });
         }
 
         // Check if the project exists
         const project = await Project.findById(id);
         if (!project) {
-            console.log('Project not found with ID:', id);
-            return res.status(404).json({ message: 'Project not found' });
+            return res.status(404).json({ 
+                message: 'Project not found.' 
+            });
         }
 
         // Check ownership
-        console.log('Logged-in User ID:', req.user.id);
-        console.log('Project Owner ID:', project.owner.toString());
-
         if (project.owner.toString() !== req.user.id) {
-            return res.status(403).json({ message: 'Unauthorized to update this project' });
+            return res.status(403).json({ 
+                message: 'Unauthorized to update this project.' 
+            });
+        }
+
+        // Check if new name conflicts with another project of the same user
+        if (name && name !== project.name) {
+            const existingProject = await Project.findOne({
+                name: { $regex: new RegExp(`^${name}$`, 'i') },
+                owner: req.user.id,
+                _id: { $ne: id } // Exclude current project from the check
+            });
+            
+            if (existingProject) {
+                return res.status(400).json({ 
+                    message: 'You already have another project with this name.' 
+                });
+            }
+        }
+
+        // Check if new URL conflicts with another project of the same user
+        if (url && url.toLowerCase() !== project.url) {
+            const existingProject = await Project.findOne({
+                url: url.toLowerCase(),
+                owner: req.user.id,
+                _id: { $ne: id } // Exclude current project from the check
+            });
+            
+            if (existingProject) {
+                return res.status(400).json({ 
+                    message: 'You already have another project with this URL.' 
+                });
+            }
         }
 
         // Update project
         const updatedProject = await Project.findByIdAndUpdate(
             id,
-            { name, url, domain },
+            { 
+                name: name || project.name,
+                url: url ? url.toLowerCase() : project.url,
+                domain: domain || project.domain
+            },
             { new: true, runValidators: true }
         );
 
-        console.log('Project updated successfully:', updatedProject);
-        res.status(200).json({ message: 'Project updated successfully', project: updatedProject });
+        res.status(200).json({ 
+            message: 'Project updated successfully.', 
+            project: updatedProject 
+        });
     } catch (error) {
         console.error('Error updating project:', error.message);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        
+        // Handle duplicate key errors
+        if (error.code === 11000) {
+            return res.status(400).json({ 
+                message: 'Project with this name or URL already exists.' 
+            });
+        }
+        
+        // Handle validation errors
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ 
+                message: 'Validation failed.',
+                errors: error.errors 
+            });
+        }
+        
+        res.status(500).json({ 
+            message: 'Server error while updating project.', 
+            error: error.message 
+        });
     }
 });
 
