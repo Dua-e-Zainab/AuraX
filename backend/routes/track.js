@@ -77,7 +77,6 @@ router.get('/heatmap/:projectId', authenticateToken, async (req, res) => {
   }
 });
 
-
 // Dashboard Data Aggregation Endpoint
 router.get('/dashboard/:projectId', authenticateToken, async (req, res) => {
   const { projectId } = req.params;
@@ -144,7 +143,5 @@ router.get('/dashboard/:projectId', authenticateToken, async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
-
-
 
 module.exports = router;

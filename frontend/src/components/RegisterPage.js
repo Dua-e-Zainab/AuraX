@@ -13,7 +13,7 @@ const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError(''); // Reset any previous error message
 
     // Basic client-side validation
     if (!email || !password) {
@@ -22,21 +22,28 @@ const RegisterPage = () => {
       return;
     }
 
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError('Please enter a valid email address.');
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long.');
+      setLoading(false);
+      return;
+    }
+
     try {
       // Send POST request to backend signup endpoint
       const response = await axios.post('http://localhost:5000/api/auth/signup', { email, password });
-    
+
       // Log response for debugging (optional)
       console.log('Registration response:', response.data);
-    
-      // Example: Use response data if needed
-      if (response.data.message) {
-        console.log('Server message:', response.data.message);
-      }
-    
+
       // Show success popup on successful registration
       setShowPopup(true); // Show the success popup
-    
+
       // Close the popup and redirect to login page after 3 seconds
       setTimeout(() => {
         setShowPopup(false);
@@ -44,13 +51,24 @@ const RegisterPage = () => {
       }, 3000);
     } catch (error) {
       setLoading(false);
-      // Handle errors here, e.g. user already exists
+      // Handle errors here, such as user already exists
       if (error.response) {
-        setError(error.response.data.message || 'Something went wrong. Please try again.');
+        // This is the case where the server sends a response (e.g., 400, 500)
+        if (error.response.status === 400) {
+          setError(error.response.data.message || 'Registration failed. Please try again.');
+        } else if (error.response.status === 500) {
+          setError('Server error. Please try again later.');
+        } else {
+          setError(error.response.data.message || 'Something went wrong. Please try again.');
+        }
+      } else if (error.request) {
+        // This happens when the request was made but no response was received
+        setError('No response from server. Please check your network connection.');
       } else {
-        setError('Network error. Please check your connection and try again.');
+        // Something happened while setting up the request
+        setError(`Error: ${error.message}`);
       }
-    } // <-- Closing brace for try-catch
+    }
   };
 
   return (
@@ -60,11 +78,11 @@ const RegisterPage = () => {
         <div className="flex-1 p-10">
           <div className="text-center mb-6">
             <Link to="/">
-            <img
-              src="Logo2.png"
-              alt="AuraX Logo"
-              className="mx-auto w-32 mb-4"
-            />
+              <img
+                src="Logo2.png"
+                alt="AuraX Logo"
+                className="mx-auto w-32 mb-4"
+              />
             </Link>
             <h3 className="text-2xl font-bold text-purple-700">Create your account</h3>
           </div>
@@ -110,12 +128,12 @@ const RegisterPage = () => {
             <button
               type="submit"
               className={`w-full py-3 mt-4 rounded ${loading ? 'bg-gray-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'} text-white font-semibold hover:from-blue-600 hover:to-purple-600 transition`}
-              disabled={loading} 
+              disabled={loading}
             >
               {loading ? 'Signing up...' : 'Submit'}
             </button>
             {error && (
-              <p className="text-red-500 text-center mt-2">{error}</p> 
+              <p className="text-red-500 text-center mt-2">{error}</p>
             )}
             <p className="text-center text-gray-600 mt-4">
               Already have an account?{' '}
