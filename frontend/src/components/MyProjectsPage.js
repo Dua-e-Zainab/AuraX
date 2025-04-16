@@ -129,8 +129,12 @@ const MyProjects = () => {
     };
 
     if (loading) {
-        return <p>Loading projects...</p>;
-    }
+        return (
+          <div className="flex justify-center items-center min-h-screen">
+            <div className="border-t-4 border-b-4 border-purple-500 w-16 h-16 rounded-full animate-spin"></div>
+          </div>
+        );
+      }
 
     if (!isLoggedIn) {
         return (

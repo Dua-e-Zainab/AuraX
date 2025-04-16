@@ -14,6 +14,7 @@ const HeatmapPage = () => {
   const [scrollY, setScrollY] = useState(0);
   const [loading, setLoading] = useState(true);
   const [iframeWidth, setIframeWidth] = useState("100%");
+  const [tokenExpired, setTokenExpired] = useState(false);
 
   // Fetch project URL
   useEffect(() => {
@@ -24,6 +25,11 @@ const HeatmapPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
+        if (response.status === 401) {
+          setTokenExpired(true);
+          return;
+        }
+
         const data = await response.json();
         if (response.ok && data.success) {
           setProjectUrl(data.project.url);
@@ -33,17 +39,17 @@ const HeatmapPage = () => {
       } catch (err) {
         console.error("Failed to fetch project URL:", err);
       } finally {
-        setLoading(false); // Ensure loading state is updated
+        setLoading(false);
       }
     };
 
     fetchProjectUrl();
   }, [projectId]);
 
-  // **Ensure hook always runs, even if projectId is missing**
+  // Fetch heatmap data
   useEffect(() => {
     const fetchHeatmapData = async () => {
-      if (!projectId) return; // Still runs, just does nothing
+      if (!projectId) return;
 
       try {
         const token = localStorage.getItem("token");
@@ -55,6 +61,11 @@ const HeatmapPage = () => {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
+
+        if (response.status === 401) {
+          setTokenExpired(true);
+          return;
+        }
 
         if (!response.ok) throw new Error(`Error fetching heatmap data: ${response.statusText}`);
 
@@ -74,7 +85,7 @@ const HeatmapPage = () => {
     fetchHeatmapData();
   }, [projectId]);
 
-  // **Always runs, only updates when iframeLoaded and heatmapData exist**
+  // Render heatmap
   useEffect(() => {
     if (!iframeLoaded || heatmapData.length === 0) return;
 
@@ -101,7 +112,7 @@ const HeatmapPage = () => {
     });
   }, [iframeLoaded, heatmapData, scrollY]);
 
-  // **Always runs to listen for messages**
+  // Listen for messages from iframe
   useEffect(() => {
     const handleMessage = (event) => {
       if (!projectUrl) return;
@@ -122,11 +133,26 @@ const HeatmapPage = () => {
     return () => window.removeEventListener("message", handleMessage);
   }, [projectUrl]);
 
-  // **Ensure the return comes after all hooks**
+  // Handle loading and expired token
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="border-t-4 border-b-4 border-purple-500 w-16 h-16 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (tokenExpired) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-gray-800">
+        <h2 className="text-2xl font-semibold mb-4">Session Expired</h2>
+        <p className="mb-6">Your session has expired. Please log in again to continue.</p>
+        <a
+          href="/login"
+          className="px-6 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+        >
+          Go to Login
+        </a>
       </div>
     );
   }
@@ -152,7 +178,7 @@ const HeatmapPage = () => {
           src={projectUrl}
           className="absolute top-0 left-0 z-0"
           style={{
-            width: "100%",
+            width: iframeWidth,
             height: "100%",
           }}
           onLoad={() => setIframeLoaded(true)}

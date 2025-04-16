@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBriefcase,
@@ -9,25 +9,24 @@ import {
   faChartBar,
   faUser,
 } from "@fortawesome/free-solid-svg-icons";
-import { useNavigate } from 'react-router-dom';
 
 const Navbar2 = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const toggleDropdown = () => {
     setDropdownOpen((prev) => !prev);
   };
 
-  // Handle logout
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
+    localStorage.removeItem("projectId"); // optional: clear project ID on logout
     setIsLoggedIn(false);
-    navigate('/');
+    navigate("/");
   };
-
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -42,15 +41,21 @@ const Navbar2 = () => {
     };
   }, []);
 
+  // Get current project ID from localStorage
+  const projectId = localStorage.getItem("projectId");
+
+  // Detect if overview route is active
+  const isOverviewActive = location.pathname.startsWith("/overview");
+
   return (
     <nav className="bg-white shadow-sm py-8 flex items-center h-100 w-full">
       <ul className="flex justify-center space-x-20 text-gray-400 text-lg font-medium w-full mx-auto">
         {/* Overview */}
         <li>
           <NavLink
-            to="/overview/:id"
+            to={`/overview/${projectId || ""}`}
             className={({ isActive }) =>
-              isActive
+              isOverviewActive
                 ? "text-purple-600 flex items-center"
                 : "hover:text-purple-600 flex items-center"
             }
@@ -140,7 +145,7 @@ const Navbar2 = () => {
                 Sign Out
               </button>
               <button
-                onClick={() => navigate('/')}
+                onClick={() => navigate("/")}
                 className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white transition duration-300 rounded-md"
               >
                 AuraX

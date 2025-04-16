@@ -1,4 +1,3 @@
-
 const express = require('express');
 const Project = require('../models/Project');
 const { authenticateToken } = require('../middleware/authMiddleware');
@@ -104,7 +103,6 @@ router.post('/create', authenticateToken, async (req, res) => {
 
               const getBrowser = () => {
                 const ua = navigator.userAgent;
-
                 if (/Edg\//.test(ua)) return "Edge";
                 if (/Chrome\//.test(ua) && !/Edg\//.test(ua)) return "Chrome";
                 if (/Firefox\//.test(ua)) return "Firefox";
