@@ -35,6 +35,15 @@ router.post('/create', authenticateToken, async (req, res) => {
             return res.status(400).json({ message: 'You already have a project with this name.' });
         }
 
+        // Check for existing project with the same name for this user
+        const existingProjectByName = await Project.findOne({
+            name: { $regex: new RegExp(`^${name}$`, 'i') }, // Case insensitive match
+            owner: userId
+        });
+        if (existingProjectByName) {
+            return res.status(400).json({ message: 'You already have a project with this name.' });
+        }
+
         // Save the new project in the database
         const newProject = new Project({
             name,
@@ -53,7 +62,7 @@ router.post('/create', authenticateToken, async (req, res) => {
             const sessionId = (() => {
               let sessionId = localStorage.getItem('sessionId');
               if (!sessionId) {
-                sessionId = \`sess-\${Math.random().toString(36).substr(2, 9)}\`;
+                sessionId = \sess-\${Math.random().toString(36).substr(2, 9)}\;
                 localStorage.setItem('sessionId', sessionId);
               }
               return sessionId;
@@ -63,7 +72,7 @@ router.post('/create', authenticateToken, async (req, res) => {
             const clickTrackingData = {};
         
             const trackClickPerformance = (x, y) => {
-              const key = \`\${Math.round(x)},\${Math.round(y)}\`;
+              const key = \\${Math.round(x)},\${Math.round(y)}\;
               const currentTime = Date.now();
         
               const clickData = clickTrackingData[key] = clickTrackingData[key] || {
@@ -116,27 +125,8 @@ router.post('/create', authenticateToken, async (req, res) => {
               const y = event.pageY;
         
               trackClickPerformance(x, y);
-
-              const getBrowser = () => {
-                const ua = navigator.userAgent;
-
-                if (/Edg\//.test(ua)) return "Edge";
-                if (/Chrome\//.test(ua) && !/Edg\//.test(ua)) return "Chrome";
-                if (/Firefox\//.test(ua)) return "Firefox";
-                if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) return "Safari";
-                if (/Opera|OPR\//.test(ua)) return "Opera";
-
-                return "Unknown";
-              };
-
-              const getDeviceType = () => {
-                const ua = navigator.userAgent;
-                if (/Tablet|iPad/i.test(ua)) return "Tablet";
-                if (/Mobi|Android|iPhone/i.test(ua)) return "Mobile";
-                return "Desktop";
-              };
         
-              fetch(\`http://localhost:5000/api/track/\${projectId}\`, {
+              fetch(\http://localhost:5000/api/track/\${projectId}\, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -153,9 +143,9 @@ router.post('/create', authenticateToken, async (req, res) => {
                   y,
                   eventType: "click",
                   timestamp: new Date().toISOString(),
-                  os: navigator.platform,
-                  browser: getBrowser(),
-                  device: getDeviceType(),  // ✅ Use function here
+                  os: navigator.platform, 
+                  browser: navigator.userAgent,
+                  device: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
                   rageClicks,
                   deadClicks,
                   quickClicks,

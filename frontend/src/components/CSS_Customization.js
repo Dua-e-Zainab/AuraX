@@ -20,6 +20,18 @@ const CSSCustomization = () => {
   const [iframeWidth, setIframeWidth] = useState("100%");
   const [iframeHeight, setIframeHeight] = useState("100%");
   const [showHeatmap, setShowHeatmap] = useState(true);
+  const [isMobileView, setIsMobileView] = useState(false);
+
+  // Check screen size on mount and resize
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobileView(window.innerWidth < 1024); // Adjust breakpoint as needed
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   // Fetch project URL
   useEffect(() => {
@@ -217,7 +229,7 @@ a:hover {
     const suggestions = countArray.map((point, index) => {
       let zone = "Neutral Zone";
       let cssOptions = neutralZoneSuggestions;
-      
+
       if (index < hotThresholdIndex) {
         zone = "Hot Zone";
         cssOptions = hotZoneSuggestions;
@@ -225,7 +237,7 @@ a:hover {
         zone = "Cold Zone";
         cssOptions = coldZoneSuggestions;
       }
-      
+
       // For hot zones, just indicate the zone without detailed suggestions
       if (zone === "Hot Zone") {
         return {
@@ -236,7 +248,7 @@ a:hover {
           count: point.count,
         };
       }
-      
+
       // For other zones, select a suggestion
       const randomSuggestionIndex = Math.floor(Math.random() * cssOptions.length);
       return {
@@ -262,15 +274,15 @@ a:hover {
         if (event.origin !== expectedOrigin) return;
 
         const { type, scrollY: newScrollY, contentWidth, contentHeight } = event.data;
-        
+
         if (type === "SCROLL_EVENT") {
           setScrollY(newScrollY);
         }
-        
+
         if (type === "CONTENT_WIDTH") {
           setIframeWidth(`${contentWidth}px`);
         }
-        
+
         if (type === "CONTENT_HEIGHT") {
           setIframeHeight(`${contentHeight}px`);
         }
@@ -292,7 +304,7 @@ a:hover {
           heatmapContainerRef.current.style.width = `${iframeRef.current.clientWidth}px`;
           heatmapContainerRef.current.style.height = `${iframeRef.current.clientHeight}px`;
         }
-        
+
         // If the heatmap instance exists, redraw it
         if (heatmapInstance.current) {
           heatmapInstance.current.repaint();
@@ -307,24 +319,24 @@ a:hover {
   // Copy to clipboard implementation
   const handleCopyClick = (e, code, id) => {
     e.preventDefault();
-    
+
     // Copy the code using a different approach
     const textArea = document.createElement('textarea');
     textArea.value = code;
     textArea.style.position = 'fixed';  // Avoid scrolling to bottom
     textArea.style.left = '-9999px';    // Move element out of view
     textArea.style.top = '0';
-    
+
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
-    
+
     try {
       const successful = document.execCommand('copy');
       if (successful) {
         // Update copied state
         setCopiedSections({...copiedSections, [id]: "Copied!"});
-        
+
         // Reset after delay
         setTimeout(() => {
           setCopiedSections(prev => {
@@ -339,13 +351,13 @@ a:hover {
     } catch (err) {
       console.error('Could not copy text: ', err);
     }
-    
+
     document.body.removeChild(textArea);
   };
 
   // Filter suggestions based on selected zone
-  const filteredSuggestions = selectedZoneFilter === "all" 
-    ? cssSuggestions 
+  const filteredSuggestions = selectedZoneFilter === "all"
+    ? cssSuggestions
     : cssSuggestions.filter(suggestion => suggestion.zone === selectedZoneFilter);
 
   if (loading) {
@@ -397,12 +409,12 @@ a:hover {
       </div>
 
       {/* Control Panel */}
-      <div className="bg-white shadow-md p-4 mb-4 flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-4">
+      <div className="bg-white shadow-md p-4 mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
           <h1 className="text-xl font-bold text-gray-800">CSS Optimizer</h1>
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">Heatmap:</span>
-            <button 
+            <button
               onClick={() => setShowHeatmap(!showHeatmap)}
               className={`px-3 py-1 text-sm rounded-full font-medium ${showHeatmap ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-600'}`}
             >
@@ -410,11 +422,11 @@ a:hover {
             </button>
           </div>
         </div>
-        
-        <div className="flex items-center gap-4">
+
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">Filter:</span>
-            <select 
+            <select
               value={selectedZoneFilter}
               onChange={(e) => setSelectedZoneFilter(e.target.value)}
               className="bg-white border border-gray-300 text-gray-700 py-1 px-3 rounded text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -425,14 +437,14 @@ a:hover {
               <option value="Cold Zone">Cold Zones</option>
             </select>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-500"></span>
             <span className="text-sm text-gray-600">Hot</span>
-            
+
             <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-purple-500 ml-2"></span>
             <span className="text-sm text-gray-600">Neutral</span>
-            
+
             <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-500 ml-2"></span>
             <span className="text-sm text-gray-600">Cold</span>
           </div>
@@ -441,14 +453,14 @@ a:hover {
 
       <div className="flex flex-col flex-grow">
         {/* Iframe and Heatmap Container */}
-        <div className="relative flex-grow overflow-hidden">
+        <div className="relative flex-grow overflow-hidden" style={{ height: isMobileView ? '50vh' : '60vh' }}>
           {/* Iframe-sized container for heatmap */}
           <div
             ref={heatmapContainerRef}
             id="heatmap-container"
             className={`absolute top-0 left-0 w-full h-full pointer-events-none z-10 ${showHeatmap ? 'opacity-70' : 'opacity-0'}`}
-            style={{ 
-              width: iframeWidth, 
+            style={{
+              width: iframeWidth,
               height: iframeHeight,
               transition: 'opacity 0.3s ease'
             }}
@@ -463,14 +475,10 @@ a:hover {
           <iframe
             ref={iframeRef}
             src={projectUrl}
-            className="absolute top-0 left-0 z-0"
-            style={{
-              width: "100%",
-              height: "100%",
-            }}
+            className="absolute top-0 left-0 z-0 w-full h-full"
             onLoad={() => {
               setIframeLoaded(true);
-              
+
               // Add script to the iframe to track dimensions and scrolling
               const iframe = iframeRef.current;
               if (iframe && iframe.contentWindow) {
@@ -481,12 +489,12 @@ a:hover {
                     type: 'CONTENT_WIDTH',
                     contentWidth: document.documentElement.scrollWidth || document.body.scrollWidth
                   }, '*');
-                  
+
                   window.parent.postMessage({
                     type: 'CONTENT_HEIGHT',
                     contentHeight: document.documentElement.scrollHeight || document.body.scrollHeight
                   }, '*');
-                  
+
                   // Track scroll position
                   window.addEventListener('scroll', function() {
                     window.parent.postMessage({
@@ -494,21 +502,21 @@ a:hover {
                       scrollY: window.scrollY || document.documentElement.scrollTop
                     }, '*');
                   });
-                  
+
                   // Track resize
                   window.addEventListener('resize', function() {
                     window.parent.postMessage({
                       type: 'CONTENT_WIDTH',
                       contentWidth: document.documentElement.scrollWidth || document.body.scrollWidth
                     }, '*');
-                    
+
                     window.parent.postMessage({
                       type: 'CONTENT_HEIGHT',
                       contentHeight: document.documentElement.scrollHeight || document.body.scrollHeight
                     }, '*');
                   });
                 `;
-                
+
                 try {
                   iframe.contentDocument.head.appendChild(script);
                 } catch (error) {
@@ -522,7 +530,7 @@ a:hover {
           {/* Zone Markers - only show if heatmap is displayed */}
           {showHeatmap && filteredSuggestions.map((suggestion) => {
             const zoneColors = getZoneColors(suggestion.zone);
-            
+
             return (
               <div
                 key={suggestion.id}
@@ -543,14 +551,14 @@ a:hover {
         </div>
 
         {/* Suggestions Section with Tabs */}
-        <div className="bg-white shadow-md overflow-hidden">
+        <div className="bg-white shadow-md overflow-hidden flex-grow">
           {/* Tab Navigation */}
-          <div className="flex border-b border-gray-200">
-            <button 
+          <div className="flex border-b border-gray-200 overflow-x-auto">
+            <button
               onClick={() => setSelectedZoneFilter("all")}
-              className={`flex items-center px-6 py-3 text-sm font-medium ${
-                selectedZoneFilter === "all" 
-                  ? "border-b-2 border-purple-500 text-purple-600" 
+              className={`flex items-center px-4 py-3 text-sm font-medium whitespace-nowrap ${
+                selectedZoneFilter === "all"
+                  ? "border-b-2 border-purple-500 text-purple-600"
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -559,12 +567,12 @@ a:hover {
                 {cssSuggestions.length}
               </span>
             </button>
-            
-            <button 
+
+            <button
               onClick={() => setSelectedZoneFilter("Hot Zone")}
-              className={`flex items-center px-6 py-3 text-sm font-medium ${
-                selectedZoneFilter === "Hot Zone" 
-                  ? "border-b-2 border-red-500 text-red-600" 
+              className={`flex items-center px-4 py-3 text-sm font-medium whitespace-nowrap ${
+                selectedZoneFilter === "Hot Zone"
+                  ? "border-b-2 border-red-500 text-red-600"
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -573,12 +581,12 @@ a:hover {
                 {cssSuggestions.filter(s => s.zone === "Hot Zone").length}
               </span>
             </button>
-            
-            <button 
+
+            <button
               onClick={() => setSelectedZoneFilter("Neutral Zone")}
-              className={`flex items-center px-6 py-3 text-sm font-medium ${
-                selectedZoneFilter === "Neutral Zone" 
-                  ? "border-b-2 border-purple-500 text-purple-600" 
+              className={`flex items-center px-4 py-3 text-sm font-medium whitespace-nowrap ${
+                selectedZoneFilter === "Neutral Zone"
+                  ? "border-b-2 border-purple-500 text-purple-600"
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -587,12 +595,12 @@ a:hover {
                 {cssSuggestions.filter(s => s.zone === "Neutral Zone").length}
               </span>
             </button>
-            
-            <button 
+
+            <button
               onClick={() => setSelectedZoneFilter("Cold Zone")}
-              className={`flex items-center px-6 py-3 text-sm font-medium ${
-                selectedZoneFilter === "Cold Zone" 
-                  ? "border-b-2 border-blue-500 text-blue-600" 
+              className={`flex items-center px-4 py-3 text-sm font-medium whitespace-nowrap ${
+                selectedZoneFilter === "Cold Zone"
+                  ? "border-b-2 border-blue-500 text-blue-600"
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -602,75 +610,75 @@ a:hover {
               </span>
             </button>
           </div>
-          
+
           {/* Suggestion Cards */}
-          <div className="p-6 overflow-y-auto max-h-96">
+          <div className="p-4 sm:p-6 overflow-y-auto" style={{ maxHeight: isMobileView ? '40vh' : '30vh' }}>
             {/* No suggestions message if none available */}
             {filteredSuggestions.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                 </svg>
-                <p className="text-gray-500 text-lg font-medium">No zones available for this filter</p>
-                <p className="text-gray-400 mt-2">Try selecting a different zone type or check back after collecting more user data.</p>
+                <p className="text-gray-500 text-base sm:text-lg font-medium">No zones available for this filter</p>
+                <p className="text-gray-400 mt-2 text-sm sm:text-base">Try selecting a different zone type or check back after collecting more user data.</p>
               </div>
             )}
-            
+
             {/* Hot Zones Section - Just indicator without suggestions */}
             {selectedZoneFilter === "Hot Zone" && filteredSuggestions.length > 0 && (
               <div className="mb-6">
                 <div className="flex items-center mb-4">
                   <div className="w-4 h-4 rounded-full bg-red-500 mr-2"></div>
-                  <h2 className="text-lg font-medium text-gray-800">Hot Zones Detected</h2>
+                  <h2 className="text-base sm:text-lg font-medium text-gray-800">Hot Zones Detected</h2>
                 </div>
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-gray-700">
-                    {filteredSuggestions.length} hot {filteredSuggestions.length === 1 ? 'zone has' : 'zones have'} been detected on your page. 
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4">
+                  <p className="text-gray-700 text-sm sm:text-base">
+                    {filteredSuggestions.length} hot {filteredSuggestions.length === 1 ? 'zone has' : 'zones have'} been detected on your page.
                     These are areas where users interact the most.
                   </p>
                 </div>
               </div>
             )}
-            
+
             {/* Suggestions Grid - Only for Cold and Neutral zones */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {filteredSuggestions
                 .filter(suggestion => suggestion.zone !== "Hot Zone" && suggestion.cssCode)
                 .map((suggestion) => {
                   const zoneColors = getZoneColors(suggestion.zone);
-                  
+
                   return (
-                    <div 
+                    <div
                       key={suggestion.id}
                       className={`${zoneColors.bg} border ${zoneColors.border} rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300`}
                     >
                       {/* Card Header */}
-                      <div className="px-4 py-3 border-b border-opacity-50 flex justify-between items-center">
+                      <div className="px-3 py-2 sm:px-4 sm:py-3 border-b border-opacity-50 flex justify-between items-center">
                         <div>
                           <span className={`inline-block ${zoneColors.badge} text-white text-xs px-2 py-0.5 rounded-full mr-2`}>
                             {suggestion.zone.replace(' Zone', '')}
                           </span>
-                          <h3 className={`${zoneColors.text} font-medium inline`}>
+                          <h3 className={`${zoneColors.text} font-medium inline text-sm sm:text-base`}>
                             {suggestion.suggestion}
                           </h3>
                         </div>
                       </div>
-                      
+
                       {/* Code Section */}
                       <div className="relative">
-                        <pre className="text-xs bg-gray-900 text-gray-100 p-4 overflow-x-auto max-h-60 scrollbar-thin">
+                        <pre className="text-xs bg-gray-900 text-gray-100 p-3 sm:p-4 overflow-x-auto max-h-40 sm:max-h-60 scrollbar-thin">
                           <code>{suggestion.cssCode}</code>
                         </pre>
                         <button
-                          className={`absolute top-3 right-3 px-2 py-1 ${zoneColors.button} text-white text-xs rounded shadow transition-colors opacity-70 hover:opacity-100`}
+                          className={`absolute top-2 right-2 sm:top-3 sm:right-3 px-2 py-1 ${zoneColors.button} text-white text-xs rounded shadow transition-colors opacity-70 hover:opacity-100`}
                           onClick={(e) => handleCopyClick(e, suggestion.cssCode, suggestion.id)}
                         >
                           {copiedSections[suggestion.id] || "Copy"}
                         </button>
                       </div>
-                      
+
                       {/* Tips or Explanation (optional) */}
-                      <div className="px-4 py-3 bg-white bg-opacity-50">
+                      <div className="px-3 py-2 sm:px-4 sm:py-3 bg-white bg-opacity-50">
                         <p className="text-xs text-gray-600">
                           {suggestion.zone === "Neutral Zone" && "Use this style to maintain consistent user experience"}
                           {suggestion.zone === "Cold Zone" && "This style can help draw more attention to overlooked areas"}
