@@ -3,27 +3,37 @@ const UserData = require('../models/UserData');
 const Project = require('../models/Project');
 const { authenticateToken } = require('../middleware/authMiddleware');
 const router = express.Router();
+const { UAParser } = require("ua-parser-js");
+const mongoose = require("mongoose"); // <-- add this line
+
+
 
 // Endpoint to save user interaction data for a specific project
 router.post("/:projectId", async (req, res) => {
   console.log("Request Body:", req.body); 
-
-  const {
-    sessionId,
-    x,
-    y,
-    eventType,
-    timestamp,
-    os,
-    device,
-    browser,
-    rageClicks,
-    deadClicks,
-    quickClicks,
-    intensity,
-  } = req.body;
-
+  
+  
   try {
+    const parser = new UAParser(req.headers["user-agent"]);
+    const ua = parser.getResult();
+    console.log("Parsed User-Agent:", ua);
+
+    const os = ua.os.name || "Unknown";
+    const browser = ua.browser.name || "Unknown";
+    const device = ua.device.type ? ua.device.type : "desktop";
+
+    const {
+      sessionId,
+      x,
+      y,
+      eventType,
+      timestamp,
+      rageClicks,
+      deadClicks,
+      quickClicks,
+      intensity,
+    } = req.body;
+
     const userData = new UserData({
       projectId: req.params.projectId,
       sessionId,
@@ -32,21 +42,20 @@ router.post("/:projectId", async (req, res) => {
       eventType,
       timestamp,
       os,
-      device,
       browser,
+      device,
       rageClicks,
       deadClicks,
       quickClicks,
       intensity,
     });
 
-    console.log("Data to be saved:", userData); 
     await userData.save();
-    console.log("Data saved successfully:", userData); 
     res.status(201).json({ message: "Data saved successfully" });
+
   } catch (err) {
-    console.error("Error saving user data:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error saving tracked data:", err.message);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
@@ -82,64 +91,58 @@ router.get('/dashboard/:projectId', authenticateToken, async (req, res) => {
   const { projectId } = req.params;
 
   try {
-    console.log("Received projectId:", projectId);
+    const objectProjectId = new mongoose.Types.ObjectId(projectId); // ✅ convert to ObjectId
 
-    // Sessions
-    const sessions = await UserData.distinct("sessionId", { projectId });
+    // Now use objectProjectId in all queries
+    const sessions = await UserData.distinct("sessionId", { projectId: objectProjectId });
+    const sessionCount = sessions.length;
 
-    // Total Clicks
-    const totalClicks = await UserData.countDocuments({ projectId, eventType: "click" });
+    const totalClicks = await UserData.countDocuments({ projectId: objectProjectId, eventType: "click" });
 
-    // Rage Clicks
-    const rageClicks = await UserData.countDocuments({ projectId, rageClicks: { $gt: 0 } });
-
-    // Dead Clicks
-    const deadClicks = await UserData.countDocuments({ projectId, deadClicks: { $gt: 0 } });
-
-    // Quick Clicks
-    const quickClicks = await UserData.countDocuments({ projectId, quickClicks: { $gt: 0 } });
-
-    // OS Distribution
-    const osData = await UserData.aggregate([
-      { $match: { projectId } },
-      { $group: { _id: "$os", count: { $sum: 1 } } },
-      { $project: { os: "$_id", count: 1, _id: 0 } }
+    const [rageClicks, deadClicks, quickClicks] = await Promise.all([
+      UserData.countDocuments({ projectId: objectProjectId, rageClicks: { $gt: 0 } }),
+      UserData.countDocuments({ projectId: objectProjectId, deadClicks: { $gt: 0 } }),
+      UserData.countDocuments({ projectId: objectProjectId, quickClicks: { $gt: 0 } }),
     ]);
 
-    // Browser Distribution
-    const browserData = await UserData.aggregate([
-      { $match: { projectId } },
+    const browserCount = await UserData.aggregate([
+      { $match: { projectId: objectProjectId } }, // ✅ use objectProjectId here too
       { $group: { _id: "$browser", count: { $sum: 1 } } },
-      { $project: { browser: "$_id", count: 1, _id: 0 } }
+      { $project: { browser: "$_id", count: 1, _id: 0 } },
     ]);
 
-    // Device Distribution
-    const deviceData = await UserData.aggregate([
-      { $match: { projectId } },
+    const osCount = await UserData.aggregate([
+      { $match: { projectId: objectProjectId } },
+      { $group: { _id: "$os", count: { $sum: 1 } } },
+      { $project: { os: "$_id", count: 1, _id: 0 } },
+    ]);
+
+    const deviceCount = await UserData.aggregate([
+      { $match: { projectId: objectProjectId } },
       { $group: { _id: "$device", count: { $sum: 1 } } },
-      { $project: { device: "$_id", count: 1, _id: 0 } }
+      { $project: { device: "$_id", count: 1, _id: 0 } },
     ]);
 
-    // Return aggregated data
     res.json({
       success: true,
       metrics: [
-        { title: "Sessions", value: sessions.length, note: "" },
-        { title: "Total Clicks", value: totalClicks, note: "" }
+        { title: "Sessions", value: sessionCount },
+        { title: "Total Clicks", value: totalClicks },
       ],
       insights: [
-        { label: "Rage Clicks", value: `${((rageClicks / totalClicks) * 100).toFixed(2)}%` },
-        { label: "Dead Clicks", value: `${((deadClicks / totalClicks) * 100).toFixed(2)}%` },
-        { label: "Quick Clicks", value: `${((quickClicks / totalClicks) * 100).toFixed(2)}%` }
+        { label: "Rage Clicks", value: totalClicks > 0 ? `${((rageClicks / totalClicks) * 100).toFixed(2)}%` : "0%" },
+        { label: "Dead Clicks", value: totalClicks > 0 ? `${((deadClicks / totalClicks) * 100).toFixed(2)}%` : "0%" },
+        { label: "Quick Clicks", value: totalClicks > 0 ? `${((quickClicks / totalClicks) * 100).toFixed(2)}%` : "0%" },
       ],
       distributions: {
-        os: osData,
-        browsers: browserData,
-        devices: deviceData
-      }
+        browsers: browserCount,
+        os: osCount,
+        devices: deviceCount,
+      },
     });
+
   } catch (error) {
-    console.error("Error fetching dashboard data:", error.message);
+    console.error("Error in /dashboard route:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });

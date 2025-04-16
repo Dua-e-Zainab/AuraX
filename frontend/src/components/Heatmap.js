@@ -33,17 +33,21 @@ const HeatmapPage = () => {
       } catch (err) {
         console.error("Failed to fetch project URL:", err);
       } finally {
+
         setLoading(false);
+
       }
     };
 
     fetchProjectUrl();
   }, [projectId]);
 
-  // Fetch heatmap data
+  // **Ensure hook always runs, even if projectId is missing**
   useEffect(() => {
     const fetchHeatmapData = async () => {
+
       if (!projectId) return;
+
 
       try {
         const token = localStorage.getItem("token");
@@ -55,6 +59,14 @@ const HeatmapPage = () => {
 
         if (!response.ok)
           throw new Error(`Error fetching heatmap data: ${response.statusText}`);
+        const response = await fetch(
+          `http://localhost:5000/api/track/heatmap/${projectId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (!response.ok) throw new Error(`Error fetching heatmap data: ${response.statusText}`);
 
         const data = await response.json();
         setHeatmapData(
@@ -72,7 +84,7 @@ const HeatmapPage = () => {
     fetchHeatmapData();
   }, [projectId]);
 
-  // Render heatmap after iframe loads
+
   useEffect(() => {
     if (!iframeLoaded || heatmapData.length === 0) return;
 
@@ -99,7 +111,6 @@ const HeatmapPage = () => {
     });
   }, [iframeLoaded, heatmapData, scrollY]);
 
-  // Listen to scroll and dimension events from iframe
   useEffect(() => {
     const handleMessage = (event) => {
       if (!projectUrl) return;
@@ -146,10 +157,14 @@ const HeatmapPage = () => {
 
         <iframe
           ref={iframeRef}
-          src={projectUrl}
+          src={"http://127.0.0.1:5501/anon-ecommerce-website/index.html"}
           className="absolute top-0 left-0 z-0"
           style={{
+
             width: iframeWidth,
+
+            width: "100%",
+
             height: "100%",
           }}
           onLoad={() => setIframeLoaded(true)}

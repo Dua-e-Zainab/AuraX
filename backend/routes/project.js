@@ -116,6 +116,25 @@ router.post('/create', authenticateToken, async (req, res) => {
               const y = event.pageY;
         
               trackClickPerformance(x, y);
+
+              const getBrowser = () => {
+                const ua = navigator.userAgent;
+
+                if (/Edg\//.test(ua)) return "Edge";
+                if (/Chrome\//.test(ua) && !/Edg\//.test(ua)) return "Chrome";
+                if (/Firefox\//.test(ua)) return "Firefox";
+                if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) return "Safari";
+                if (/Opera|OPR\//.test(ua)) return "Opera";
+
+                return "Unknown";
+              };
+
+              const getDeviceType = () => {
+                const ua = navigator.userAgent;
+                if (/Tablet|iPad/i.test(ua)) return "Tablet";
+                if (/Mobi|Android|iPhone/i.test(ua)) return "Mobile";
+                return "Desktop";
+              };
         
               fetch(\`http://localhost:5000/api/track/\${projectId}\`, {
                 method: "POST",
@@ -134,9 +153,9 @@ router.post('/create', authenticateToken, async (req, res) => {
                   y,
                   eventType: "click",
                   timestamp: new Date().toISOString(),
-                  os: navigator.platform, 
-                  browser: navigator.userAgent,
-                  device: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
+                  os: navigator.platform,
+                  browser: getBrowser(),
+                  device: getDeviceType(),  // ✅ Use function here
                   rageClicks,
                   deadClicks,
                   quickClicks,
