@@ -2,7 +2,95 @@ import React, { useState, useEffect, useRef } from "react";
 import Navbar2 from "./Navbar2";
 import h337 from "heatmap.js";
 import { useParams } from "react-router-dom";
+const styles = `
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
 
+  @keyframes slideInLeft {
+    from { 
+      opacity: 0; 
+      transform: translateX(-20px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateX(0); 
+    }
+  }
+
+  @keyframes slideInRight {
+    from { 
+      opacity: 0; 
+      transform: translateX(20px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateX(0); 
+    }
+  }
+
+  @keyframes slideInUp {
+    from { 
+      opacity: 0; 
+      transform: translateY(20px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.6s ease-out;
+  }
+
+  .animate-slideInLeft {
+    animation: slideInLeft 0.6s ease-out;
+  }
+
+  .animate-slideInRight {
+    animation: slideInRight 0.6s ease-out;
+  }
+
+  .animate-slideInUp {
+    animation: slideInUp 0.6s ease-out;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-thumb-gray-600::-webkit-scrollbar-thumb {
+    background-color: #4b5563;
+    border-radius: 4px;
+  }
+
+  .scrollbar-track-gray-800::-webkit-scrollbar-track {
+    background-color: #1f2937;
+  }
+
+  @media (max-width: 480px) {
+    .xs\\:flex-row {
+      flex-direction: row;
+    }
+    .xs\\:items-center {
+      align-items: center;
+    }
+    .xs\\:flex-none {
+      flex: none;
+    }
+  }
+`;
 const CSSCustomization = () => {
   const { projectId: paramProjectId } = useParams();
   const projectId = paramProjectId || localStorage.getItem("projectId");
@@ -16,12 +104,21 @@ const CSSCustomization = () => {
   const heatmapContainerRef = useRef(null);
   const heatmapInstance = useRef(null);
   const [iframeLoaded, setIframeLoaded] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [iframeWidth, setIframeWidth] = useState("100%");
   const [iframeHeight, setIframeHeight] = useState("100%");
   const [showHeatmap, setShowHeatmap] = useState(true);
   const [isMobileView, setIsMobileView] = useState(false);
-
+  
+  useEffect(() => {
+  const styleSheet = document.createElement("style");
+  styleSheet.innerText = styles;
+  document.head.appendChild(styleSheet);
+  
+  return () => {
+    document.head.removeChild(styleSheet);
+  };
+}, []);
   // Check screen size on mount and resize
   useEffect(() => {
     const checkScreenSize = () => {
@@ -38,7 +135,7 @@ const CSSCustomization = () => {
     const fetchProjectUrl = async () => {
       const token = localStorage.getItem("token");
       try {
-        const response = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
+        const response = await fetch(`https://aura-x.up.railway.app/api/projects/${projectId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -51,7 +148,7 @@ const CSSCustomization = () => {
       } catch (err) {
         console.error("Failed to fetch project URL:", err);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -68,7 +165,7 @@ const CSSCustomization = () => {
         if (!token) return;
 
         const response = await fetch(
-          `http://localhost:5000/api/track/heatmap/${projectId}`,
+          `https://aura-x.up.railway.app/api/track/heatmap/${projectId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -360,16 +457,25 @@ a:hover {
     ? cssSuggestions
     : cssSuggestions.filter(suggestion => suggestion.zone === selectedZoneFilter);
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
         <div className="text-center">
-          <div className="border-t-4 border-b-4 border-purple-500 w-16 h-16 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Loading your project...</p>
+          <div className="relative">
+            <div className="w-20 h-20 border-4 border-purple-200 rounded-full animate-spin border-t-purple-600 mx-auto"></div>
+            <div className="w-16 h-16 border-4 border-blue-200 rounded-full border-t-blue-600 absolute top-2 left-2 animate-pulse"></div>
+          </div>
+          <p className="mt-6 text-lg font-medium text-gray-700 animate-pulse">Loading your project...</p>
+          <div className="flex justify-center space-x-2 mt-4">
+            <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+            <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+          </div>
         </div>
       </div>
     );
   }
+
 
   // Determine zone-specific colors
   const getZoneColors = (zone) => {
@@ -409,51 +515,67 @@ a:hover {
       </div>
 
       {/* Control Panel */}
-      <div className="bg-white shadow-md p-4 mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
-          <h1 className="text-xl font-bold text-gray-800">CSS Optimizer</h1>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Heatmap:</span>
-            <button
-              onClick={() => setShowHeatmap(!showHeatmap)}
-              className={`px-3 py-1 text-sm rounded-full font-medium ${showHeatmap ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-600'}`}
-            >
-              {showHeatmap ? 'Hide' : 'Show'}
-            </button>
+      <div className="bg-white shadow-md p-3 sm:p-4 mb-4 transition-all duration-300">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 w-full lg:w-auto">
+            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-transparent bg-clip-text leading-tight animate-fadeIn">
+              CSS Optimizer
+            </h1>
+            <div className="flex items-center gap-2 animate-slideInLeft">
+              <span className="text-xs sm:text-sm text-gray-600">Heatmap:</span>
+              <button
+                onClick={() => setShowHeatmap(!showHeatmap)}
+                className={`px-3 py-1.5 text-xs sm:text-sm rounded-full font-medium transition-all duration-300 transform hover:scale-105 ${
+                  showHeatmap 
+                    ? 'bg-purple-100 text-purple-700 shadow-md' 
+                    : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                }`}
+              >
+                {showHeatmap ? 'Hide' : 'Show'}
+              </button>
+            </div>
           </div>
-        </div>
+          <div className="flex flex-col xs:flex-row xs:items-center gap-3 sm:gap-4 w-full lg:w-auto">
+            <div className="flex items-center gap-2 animate-slideInRight">
+              <span className="text-xs sm:text-sm text-gray-600 whitespace-nowrap">Filter:</span>
+              <select
+                value={selectedZoneFilter}
+                onChange={(e) => setSelectedZoneFilter(e.target.value)}
+                className="bg-white border border-gray-300 text-gray-700 py-1.5 px-2 sm:px-3 rounded text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200 hover:border-purple-300 min-w-0 flex-1 xs:flex-none"
+              >
+                <option value="all">All Zones</option>
+                <option value="Hot Zone">Hot Zones</option>
+                <option value="Neutral Zone">Neutral Zones</option>
+                <option value="Cold Zone">Cold Zones</option>
+              </select>
+            </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full sm:w-auto">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Filter:</span>
-            <select
-              value={selectedZoneFilter}
-              onChange={(e) => setSelectedZoneFilter(e.target.value)}
-              className="bg-white border border-gray-300 text-gray-700 py-1 px-3 rounded text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-            >
-              <option value="all">All Zones</option>
-              <option value="Hot Zone">Hot Zones</option>
-              <option value="Neutral Zone">Neutral Zones</option>
-              <option value="Cold Zone">Cold Zones</option>
-            </select>
-          </div>
+            <div className="flex items-center gap-1 sm:gap-2 flex-wrap animate-fadeIn">
+              <div className="flex items-center gap-1">
+                <span className="inline-flex items-center justify-center w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-red-500 animate-pulse"></span>
+                <span className="text-xs sm:text-sm text-gray-600">Hot</span>
+              </div>
 
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-500"></span>
-            <span className="text-sm text-gray-600">Hot</span>
+              <div className="flex items-center gap-1">
+                <span className="inline-flex items-center justify-center w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-purple-500 animate-pulse" style={{animationDelay: '0.2s'}}></span>
+                <span className="text-xs sm:text-sm text-gray-600">Neutral</span>
+              </div>
 
-            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-purple-500 ml-2"></span>
-            <span className="text-sm text-gray-600">Neutral</span>
-
-            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-500 ml-2"></span>
-            <span className="text-sm text-gray-600">Cold</span>
+              <div className="flex items-center gap-1">
+                <span className="inline-flex items-center justify-center w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-blue-500 animate-pulse" style={{animationDelay: '0.4s'}}></span>
+                <span className="text-xs sm:text-sm text-gray-600">Cold</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       <div className="flex flex-col flex-grow">
         {/* Iframe and Heatmap Container */}
-        <div className="relative flex-grow overflow-hidden" style={{ height: isMobileView ? '50vh' : '60vh' }}>
+        <div className="relative flex-grow overflow-hidden transition-all duration-500" style={{ 
+          height: isMobileView ? '45vh' : '60vh',
+          minHeight: '300px'
+        }}>
           {/* Iframe-sized container for heatmap */}
           <div
             ref={heatmapContainerRef}
@@ -528,111 +650,116 @@ a:hover {
           />
 
           {/* Zone Markers - only show if heatmap is displayed */}
-          {showHeatmap && filteredSuggestions.map((suggestion) => {
-            const zoneColors = getZoneColors(suggestion.zone);
+         {showHeatmap && filteredSuggestions.map((suggestion, index) => {
+          const zoneColors = getZoneColors(suggestion.zone);
 
-            return (
+          return (
+            <div
+              key={suggestion.id}
+              className="absolute z-20 transition-all duration-500 ease-out animate-fadeIn"
+              style={{
+                top: `${suggestion.y - scrollY}px`,
+                left: `${suggestion.x}px`,
+                animationDelay: `${index * 0.1}s`
+              }}
+            >
               <div
-                key={suggestion.id}
-                className="absolute z-20 transition-all duration-300"
-                style={{
-                  top: `${suggestion.y - scrollY}px`,
-                  left: `${suggestion.x}px`,
-                }}
+                className={`${zoneColors.badge} text-white text-xs px-2 py-1 rounded-full shadow-lg transform -translate-x-1/2 -translate-y-1/2 hover:scale-110 transition-transform duration-200 cursor-pointer`}
               >
-                <div
-                  className={`${zoneColors.badge} text-white text-xs px-2 py-1 rounded-full shadow-md transform -translate-x-1/2 -translate-y-1/2`}
-                >
-                  {suggestion.zone.replace(' Zone', '')}
-                </div>
+                {suggestion.zone.replace(' Zone', '')}
               </div>
-            );
-          })}
+            </div>
+          );
+        })}
+
         </div>
 
         {/* Suggestions Section with Tabs */}
-        <div className="bg-white shadow-md overflow-hidden flex-grow">
-          {/* Tab Navigation */}
-          <div className="flex border-b border-gray-200 overflow-x-auto">
-            <button
-              onClick={() => setSelectedZoneFilter("all")}
-              className={`flex items-center px-4 py-3 text-sm font-medium whitespace-nowrap ${
-                selectedZoneFilter === "all"
-                  ? "border-b-2 border-purple-500 text-purple-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              <span className="mr-2">All Zones</span>
-              <span className="bg-gray-200 text-gray-700 text-xs px-2 py-0.5 rounded-full">
-                {cssSuggestions.length}
-              </span>
-            </button>
+        <div className="bg-white shadow-lg overflow-hidden flex-grow transition-all duration-300">
+        {/* Tab Navigation */}
+        <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide">
+          <button
+            onClick={() => setSelectedZoneFilter("all")}
+            className={`flex items-center px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium whitespace-nowrap transition-all duration-300 hover:bg-gray-50 ${
+              selectedZoneFilter === "all"
+                ? "border-b-2 border-purple-500 text-purple-600 bg-purple-50"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            <span className="mr-1 sm:mr-2">All Zones</span>
+            <span className="bg-gray-200 text-gray-700 text-xs px-1.5 sm:px-2 py-0.5 rounded-full transition-colors duration-200">
+              {cssSuggestions.length}
+            </span>
+          </button>
 
-            <button
-              onClick={() => setSelectedZoneFilter("Hot Zone")}
-              className={`flex items-center px-4 py-3 text-sm font-medium whitespace-nowrap ${
-                selectedZoneFilter === "Hot Zone"
-                  ? "border-b-2 border-red-500 text-red-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              <span className="mr-2">Hot Zones</span>
-              <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full">
-                {cssSuggestions.filter(s => s.zone === "Hot Zone").length}
-              </span>
-            </button>
+          <button
+            onClick={() => setSelectedZoneFilter("Hot Zone")}
+            className={`flex items-center px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium whitespace-nowrap transition-all duration-300 hover:bg-red-50 ${
+              selectedZoneFilter === "Hot Zone"
+                ? "border-b-2 border-red-500 text-red-600 bg-red-50"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            <span className="mr-1 sm:mr-2">Hot Zones</span>
+            <span className="bg-red-100 text-red-700 text-xs px-1.5 sm:px-2 py-0.5 rounded-full transition-colors duration-200">
+              {cssSuggestions.filter(s => s.zone === "Hot Zone").length}
+            </span>
+          </button>
 
-            <button
-              onClick={() => setSelectedZoneFilter("Neutral Zone")}
-              className={`flex items-center px-4 py-3 text-sm font-medium whitespace-nowrap ${
-                selectedZoneFilter === "Neutral Zone"
-                  ? "border-b-2 border-purple-500 text-purple-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              <span className="mr-2">Neutral Zones</span>
-              <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full">
-                {cssSuggestions.filter(s => s.zone === "Neutral Zone").length}
-              </span>
-            </button>
+          <button
+            onClick={() => setSelectedZoneFilter("Neutral Zone")}
+            className={`flex items-center px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium whitespace-nowrap transition-all duration-300 hover:bg-purple-50 ${
+              selectedZoneFilter === "Neutral Zone"
+                ? "border-b-2 border-purple-500 text-purple-600 bg-purple-50"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            <span className="mr-1 sm:mr-2">Neutral Zones</span>
+            <span className="bg-purple-100 text-purple-700 text-xs px-1.5 sm:px-2 py-0.5 rounded-full transition-colors duration-200">
+              {cssSuggestions.filter(s => s.zone === "Neutral Zone").length}
+            </span>
+          </button>
 
-            <button
-              onClick={() => setSelectedZoneFilter("Cold Zone")}
-              className={`flex items-center px-4 py-3 text-sm font-medium whitespace-nowrap ${
-                selectedZoneFilter === "Cold Zone"
-                  ? "border-b-2 border-blue-500 text-blue-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              <span className="mr-2">Cold Zones</span>
-              <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">
-                {cssSuggestions.filter(s => s.zone === "Cold Zone").length}
-              </span>
-            </button>
-          </div>
+          <button
+            onClick={() => setSelectedZoneFilter("Cold Zone")}
+            className={`flex items-center px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium whitespace-nowrap transition-all duration-300 hover:bg-blue-50 ${
+              selectedZoneFilter === "Cold Zone"
+                ? "border-b-2 border-blue-500 text-blue-600 bg-blue-50"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            <span className="mr-1 sm:mr-2">Cold Zones</span>
+            <span className="bg-blue-100 text-blue-700 text-xs px-1.5 sm:px-2 py-0.5 rounded-full transition-colors duration-200">
+              {cssSuggestions.filter(s => s.zone === "Cold Zone").length}
+            </span>
+          </button>
+        </div>
 
           {/* Suggestion Cards */}
-          <div className="p-4 sm:p-6 overflow-y-auto" style={{ maxHeight: isMobileView ? '40vh' : '30vh' }}>
-            {/* No suggestions message if none available */}
+          <div className="p-3 sm:p-4 lg:p-6 overflow-y-auto transition-all duration-300" style={{ 
+            maxHeight: isMobileView ? '45vh' : '35vh',
+            minHeight: '200px'
+          }}>
+            {/* No suggestions message */}
             {filteredSuggestions.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-center animate-fadeIn">
+                <svg className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mb-3 sm:mb-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                 </svg>
-                <p className="text-gray-500 text-base sm:text-lg font-medium">No zones available for this filter</p>
-                <p className="text-gray-400 mt-2 text-sm sm:text-base">Try selecting a different zone type or check back after collecting more user data.</p>
+                <p className="text-gray-500 text-sm sm:text-base lg:text-lg font-medium">No zones available for this filter</p>
+                <p className="text-gray-400 mt-1 sm:mt-2 text-xs sm:text-sm lg:text-base px-4">Try selecting a different zone type or check back after collecting more user data.</p>
               </div>
             )}
 
-            {/* Hot Zones Section - Just indicator without suggestions */}
+            {/* Hot Zones Section */}
             {selectedZoneFilter === "Hot Zone" && filteredSuggestions.length > 0 && (
-              <div className="mb-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-4 h-4 rounded-full bg-red-500 mr-2"></div>
-                  <h2 className="text-base sm:text-lg font-medium text-gray-800">Hot Zones Detected</h2>
+              <div className="mb-4 sm:mb-6 animate-slideInUp">
+                <div className="flex items-center mb-3 sm:mb-4">
+                  <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-red-500 mr-2 animate-pulse"></div>
+                  <h2 className="text-sm sm:text-base lg:text-lg font-medium text-gray-800">Hot Zones Detected</h2>
                 </div>
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4">
-                  <p className="text-gray-700 text-sm sm:text-base">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 transform hover:scale-[1.02] transition-transform duration-200">
+                  <p className="text-gray-700 text-xs sm:text-sm lg:text-base">
                     {filteredSuggestions.length} hot {filteredSuggestions.length === 1 ? 'zone has' : 'zones have'} been detected on your page.
                     These are areas where users interact the most.
                   </p>
@@ -640,46 +767,49 @@ a:hover {
               </div>
             )}
 
-            {/* Suggestions Grid - Only for Cold and Neutral zones */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {/* Suggestions Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
               {filteredSuggestions
                 .filter(suggestion => suggestion.zone !== "Hot Zone" && suggestion.cssCode)
-                .map((suggestion) => {
+                .map((suggestion, index) => {
                   const zoneColors = getZoneColors(suggestion.zone);
 
                   return (
                     <div
                       key={suggestion.id}
-                      className={`${zoneColors.bg} border ${zoneColors.border} rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300`}
+                      className={`${zoneColors.bg} border ${zoneColors.border} rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-[1.02] animate-slideInUp`}
+                      style={{animationDelay: `${index * 0.1}s`}}
                     >
                       {/* Card Header */}
-                      <div className="px-3 py-2 sm:px-4 sm:py-3 border-b border-opacity-50 flex justify-between items-center">
-                        <div>
-                          <span className={`inline-block ${zoneColors.badge} text-white text-xs px-2 py-0.5 rounded-full mr-2`}>
-                            {suggestion.zone.replace(' Zone', '')}
-                          </span>
-                          <h3 className={`${zoneColors.text} font-medium inline text-sm sm:text-base`}>
-                            {suggestion.suggestion}
-                          </h3>
+                      <div className="px-3 py-2 sm:px-4 sm:py-3 border-b border-opacity-50 flex justify-between items-start sm:items-center">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                            <span className={`inline-block ${zoneColors.badge} text-white text-xs px-2 py-0.5 rounded-full flex-shrink-0 animate-pulse`}>
+                              {suggestion.zone.replace(' Zone', '')}
+                            </span>
+                            <h3 className={`${zoneColors.text} font-medium text-xs sm:text-sm lg:text-base break-words`}>
+                              {suggestion.suggestion}
+                            </h3>
+                          </div>
                         </div>
                       </div>
 
                       {/* Code Section */}
-                      <div className="relative">
-                        <pre className="text-xs bg-gray-900 text-gray-100 p-3 sm:p-4 overflow-x-auto max-h-40 sm:max-h-60 scrollbar-thin">
-                          <code>{suggestion.cssCode}</code>
+                      <div className="relative group">
+                        <pre className="text-xs bg-gray-900 text-gray-100 p-3 sm:p-4 overflow-x-auto max-h-32 sm:max-h-40 lg:max-h-60 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+                          <code className="font-mono">{suggestion.cssCode}</code>
                         </pre>
                         <button
-                          className={`absolute top-2 right-2 sm:top-3 sm:right-3 px-2 py-1 ${zoneColors.button} text-white text-xs rounded shadow transition-colors opacity-70 hover:opacity-100`}
+                          className={`absolute top-2 right-2 sm:top-3 sm:right-3 px-2 py-1 ${zoneColors.button} text-white text-xs rounded shadow-md transition-all duration-200 opacity-70 hover:opacity-100 transform hover:scale-105 active:scale-95`}
                           onClick={(e) => handleCopyClick(e, suggestion.cssCode, suggestion.id)}
                         >
                           {copiedSections[suggestion.id] || "Copy"}
                         </button>
                       </div>
 
-                      {/* Tips or Explanation (optional) */}
-                      <div className="px-3 py-2 sm:px-4 sm:py-3 bg-white bg-opacity-50">
-                        <p className="text-xs text-gray-600">
+                      {/* Tips Section */}
+                      <div className="px-3 py-2 sm:px-4 sm:py-3 bg-white bg-opacity-50 transition-colors duration-200 hover:bg-opacity-70">
+                        <p className="text-xs text-gray-600 leading-relaxed">
                           {suggestion.zone === "Neutral Zone" && "Use this style to maintain consistent user experience"}
                           {suggestion.zone === "Cold Zone" && "This style can help draw more attention to overlooked areas"}
                         </p>
