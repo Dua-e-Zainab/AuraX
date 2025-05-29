@@ -35,15 +35,6 @@ router.post('/create', authenticateToken, async (req, res) => {
             return res.status(400).json({ message: 'You already have a project with this name.' });
         }
 
-        // Check for existing project with the same name for this user
-        const existingProjectByName = await Project.findOne({
-            name: { $regex: new RegExp(`^${name}$`, 'i') }, // Case insensitive match
-            owner: userId
-        });
-        if (existingProjectByName) {
-            return res.status(400).json({ message: 'You already have a project with this name.' });
-        }
-
         // Save the new project in the database
         const newProject = new Project({
             name,
@@ -57,122 +48,132 @@ router.post('/create', authenticateToken, async (req, res) => {
         // Tracking snippet for the user
         const trackingSnippet = `
         <script>
-          (function () {
-            const projectId = "${savedProject._id}";
-            const sessionId = (() => {
-              let sessionId = localStorage.getItem('sessionId');
-              if (!sessionId) {
-                sessionId = \sess-\${Math.random().toString(36).substr(2, 9)}\;
-                localStorage.setItem('sessionId', sessionId);
-              }
-              return sessionId;
-            })();
-        
-            let rageClicks = 0, deadClicks = 0, quickClicks = 0;
-            const clickTrackingData = {};
-        
-            const trackClickPerformance = (x, y) => {
-              const key = \\${Math.round(x)},\${Math.round(y)}\;
-              const currentTime = Date.now();
-        
-              const clickData = clickTrackingData[key] = clickTrackingData[key] || {
-                clicks: 0,
-                lastClickTime: 0,
-                clickTimes: [],
-                rageClicks: 0,
-                deadClicks: 0,
-                quickClicks: 0,
-              };
-        
-              const timeSinceLastClick = currentTime - clickData.lastClickTime;
-              if (timeSinceLastClick < 500) {
-                clickData.rageClicks++;
-                rageClicks++;
-              }
-        
-              clickData.clickTimes.push(currentTime);
-              clickData.clickTimes = clickData.clickTimes.filter(time => currentTime - time <= 2000);
-              if (clickData.clickTimes.length > 2) {
-                clickData.quickClicks++;
-                quickClicks++;
-              }
-        
-              const isClickOnActionableArea = (x, y) => {
-                const { innerWidth, innerHeight } = window;
-                const clickableArea = {
-                  x: innerWidth / 3,
-                  y: innerHeight / 3,
-                  width: innerWidth / 3,
-                  height: innerHeight / 3,
-                };
-                return (
-                  x > clickableArea.x && x < clickableArea.x + clickableArea.width &&
-                  y > clickableArea.y && y < clickableArea.y + clickableArea.height
-                );
-              };
-        
-              if (!isClickOnActionableArea(x, y)) {
-                clickData.deadClicks++;
-                deadClicks++;
-              }
-        
-              clickData.lastClickTime = currentTime;
-              clickData.clicks++;
-            };
-        
-            document.addEventListener('click', (event) => {
-              const x = event.pageX;
-              const y = event.pageY;
-        
-              trackClickPerformance(x, y);
-        
-              fetch(\http://localhost:5000/api/track/\${projectId}\, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  projectId,
-                  sessionId: (() => {
-                    let sessionId = localStorage.getItem("sessionId");
-                    if (!sessionId) {
-                      sessionId = "sess-${Math.random().toString(36).slice(2, 11)}";
-                      localStorage.setItem("sessionId", sessionId);
-                    }
-                    return sessionId;
-                  })(),
-                  x,
-                  y,
-                  eventType: "click",
-                  timestamp: new Date().toISOString(),
-                  os: navigator.platform, 
-                  browser: navigator.userAgent,
-                  device: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
-                  rageClicks,
-                  deadClicks,
-                  quickClicks,
-                  intensity: 1,
-                }),
-              })
-                .then(response => {
-                if (response.ok) {
-                  console.log("Data sent successfully:", { x, y });
-                } else {
-                  console.error("Failed to send data:", response.status);
-                }
-              }).catch(error => console.error("Error sending data:", error));
-            });
-
-            window.addEventListener("scroll", () => {
-              parent.postMessage(
-                {
-                  type: "SCROLL_EVENT",
-                  scrollX: window.scrollX, 
-                  scrollY: window.scrollY,
-                },
-                "*"
-              );
-            });
+        (function () {
+          const projectId = "${id}";
+          const sessionId = (() => {
+            let sessionId = localStorage.getItem('sessionId');
+            if (!sessionId) {
+              sessionId = 'sess-' + Math.random().toString(36).substr(2, 9);
+              localStorage.setItem('sessionId', sessionId);
+            }
+            return sessionId;
           })();
-        </script>
+    
+          let rageClicks = 0, deadClicks = 0, quickClicks = 0;
+          const clickTrackingData = {};
+    
+          const trackClickPerformance = (x, y) => {
+            const key = \`\${Math.round(x)},\${Math.round(y)}\`;
+            const currentTime = Date.now();
+    
+            const clickData = clickTrackingData[key] = clickTrackingData[key] || {
+              clicks: 0,
+              lastClickTime: 0,
+              clickTimes: [],
+              rageClicks: 0,
+              deadClicks: 0,
+              quickClicks: 0,
+            };
+    
+            const timeSinceLastClick = currentTime - clickData.lastClickTime;
+            if (timeSinceLastClick < 500) {
+              clickData.rageClicks++;
+              rageClicks++;
+            }
+    
+            clickData.clickTimes.push(currentTime);
+            clickData.clickTimes = clickData.clickTimes.filter(time => currentTime - time <= 2000);
+            if (clickData.clickTimes.length > 2) {
+              clickData.quickClicks++;
+              quickClicks++;
+            }
+    
+            const isClickOnActionableArea = (x, y) => {
+              const { innerWidth, innerHeight } = window;
+              const clickableArea = {
+                x: innerWidth / 3,
+                y: innerHeight / 3,
+                width: innerWidth / 3,
+                height: innerHeight / 3,
+              };
+              return (
+                x > clickableArea.x && x < clickableArea.x + clickableArea.width &&
+                y > clickableArea.y && y < clickableArea.y + clickableArea.height
+              );
+            };
+    
+            if (!isClickOnActionableArea(x, y)) {
+              clickData.deadClicks++;
+              deadClicks++;
+            }
+    
+            clickData.lastClickTime = currentTime;
+            clickData.clicks++;
+          };
+    
+          document.addEventListener('click', (event) => {
+            const x = event.pageX;
+            const y = event.pageY;
+    
+            trackClickPerformance(x, y);
+    
+            const getBrowser = () => {
+              const ua = navigator.userAgent;
+              if (/Edg\\//.test(ua)) return "Edge";
+              if (/Chrome\\//.test(ua) && !/Edg\\//.test(ua)) return "Chrome";
+              if (/Firefox\\//.test(ua)) return "Firefox";
+              if (/Safari\\//.test(ua) && !/Chrome\\//.test(ua)) return "Safari";
+              if (/Opera|OPR\\//.test(ua)) return "Opera";
+              return "Unknown";
+            };
+    
+            const getDeviceType = () => {
+              const ua = navigator.userAgent;
+              if (/Tablet|iPad/i.test(ua)) return "Tablet";
+              if (/Mobi|Android|iPhone/i.test(ua)) return "Mobile";
+              return "Desktop";
+            };
+    
+            fetch(\`http://localhost:5000/api/track/\${projectId}\`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                projectId,
+                sessionId,
+                x,
+                y,
+                eventType: "click",
+                timestamp: new Date().toISOString(),
+                os: navigator.platform,
+                browser: getBrowser(),
+                device: getDeviceType(),
+                rageClicks,
+                deadClicks,
+                quickClicks,
+                intensity: 1,
+                page: window.location.pathname, // Add page tracking
+              }),
+            }).then(response => {
+              if (response.ok) {
+                console.log("Data sent successfully:", { x, y });
+              } else {
+                console.error("Failed to send data:", response.status);
+              }
+            }).catch(error => console.error("Error sending data:", error));
+          });
+    
+          window.addEventListener("scroll", () => {
+            parent.postMessage(
+              {
+                type: "SCROLL_EVENT",
+                scrollX: window.scrollX,
+                scrollY: window.scrollY,
+              },
+              "*"
+            );
+          });
+        })();
+      </script>
         `;
         
         res.status(201).json({

@@ -17,12 +17,14 @@ import InsightsPage from './components/InsightsPage.js';
 import HeatmapIntroPage from './components/heatmap_page.js';
 import CSSCustomizationPage from './components/CSS_Customization_Page';
 import InsightsIntroPage from './components/insights_page.js';
+import ForgotPasswordPage from './components/ForgotPasswordPage.js';
+import ResetPasswordPage from './components/ResetPasswordPage.js';
 
 
 const App = () => {
   return (
     // Wrap the entire application with GoogleOAuthProvider
-    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
+    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <Router>
         {/* Navbar can be added here if you wish */}
         {/* <Navbar /> */}
@@ -43,6 +45,8 @@ const App = () => {
           <Route path="/heatmap-page" element={<HeatmapIntroPage />} />
           <Route path="/css-customization-page" element={<CSSCustomizationPage />} />
           <Route path="/insights-page" element={<InsightsIntroPage/>} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
         
         {/* Footer and any global components can be added here */}
