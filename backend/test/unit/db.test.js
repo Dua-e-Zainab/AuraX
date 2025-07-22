@@ -27,5 +27,4 @@ test("Database connection should be successful", async () => {
   expect(mongoose.connection.readyState).toBe(1); // 1 means connected
 
 });
-});
 

@@ -1,37 +1,47 @@
+require('dotenv').config(); // Load environment variables at the very top
+
 const request = require('supertest');
-const app = require('../../app');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
+const app = require('../../app');
 const Project = require('../../models/Project');
 const User = require('../../models/User');
-const jwt = require('jsonwebtoken');
 
 let token, userId, projectId;
 
 beforeAll(async () => {
   jest.setTimeout(10000);
+
+  if (!process.env.MONGO_URI) {
+    throw new Error('Missing MONGO_URI in environment variables');
+  }
+
+  if (!process.env.JWT_SECRET) {
+    throw new Error('Missing JWT_SECRET in environment variables');
+  }
+
   await mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
 
-  // Clean up any existing test data
   await User.deleteMany({ email: 'testuser@example.com' });
   await Project.deleteMany({ url: 'https://heatmap.example.com' });
 
-  // Create test user
-  const user = new User({ 
-    email: 'testuser@example.com', 
+  const user = new User({
+    email: 'testuser@example.com',
     password: 'test123',
-    name: 'Test User'
+    name: 'Test User',
   });
   await user.save();
 
   userId = user._id.toString();
-  token = jwt.sign({ id: userId, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  token = jwt.sign({ id: userId, email: user.email }, process.env.JWT_SECRET, {
+    expiresIn: '1h',
+  });
 });
 
 afterAll(async () => {
-  // await Project.deleteMany({});
   await User.deleteMany({ email: 'testuser@example.com' });
   await mongoose.connection.close();
 });
@@ -45,10 +55,8 @@ describe('Projects API', () => {
         name: 'Heatmap Analysis Tool',
         url: 'https://heatmap.example.com',
         domain: 'example.com',
-        description: 'Test description'
+        description: 'Test description',
       });
-
-    console.log('Create Project Response:', res.body);
 
     expect(res.statusCode).toBe(201);
     expect(res.body.project).toHaveProperty('_id');
@@ -64,10 +72,8 @@ describe('Projects API', () => {
         name: 'Duplicate Project',
         url: 'https://heatmap.example.com',
         domain: 'example.com',
-        description: 'Test description'
+        description: 'Test description',
       });
-
-    console.log('Duplicate URL Response:', res.body);
 
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toMatch(/already exists/i);
@@ -83,8 +89,6 @@ describe('Projects API', () => {
         domain: '',
       });
 
-    console.log('Missing Fields Response:', res.body);
-
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toMatch(/required/i);
   });
@@ -93,8 +97,6 @@ describe('Projects API', () => {
     const res = await request(app)
       .get('/api/projects')
       .set('Authorization', `Bearer ${token}`);
-
-    console.log('Get All Projects Response:', res.body);
 
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body.projects)).toBeTruthy();
@@ -105,8 +107,6 @@ describe('Projects API', () => {
       .get(`/api/projects/${projectId}`)
       .set('Authorization', `Bearer ${token}`);
 
-    console.log('Get Project by ID Response:', res.body);
-
     expect(res.statusCode).toBe(200);
     expect(res.body.project).toHaveProperty('_id', projectId);
   });
@@ -116,8 +116,6 @@ describe('Projects API', () => {
     const res = await request(app)
       .get(`/api/projects/${fakeId}`)
       .set('Authorization', `Bearer ${token}`);
-
-    console.log('Non-existent Project Response:', res.body);
 
     expect(res.statusCode).toBe(404);
   });
@@ -130,10 +128,8 @@ describe('Projects API', () => {
         name: 'Updated Project',
         url: 'https://updated-url.com',
         domain: 'updated.com',
-        description: 'Updated description'
+        description: 'Updated description',
       });
-
-    console.log('Update Project Response:', res.body);
 
     expect(res.statusCode).toBe(200);
     expect(res.body.project.name).toBe('Updated Project');
@@ -150,8 +146,6 @@ describe('Projects API', () => {
         domain: 'invalid',
       });
 
-    console.log('Invalid ID Update Response:', res.body);
-
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toMatch(/invalid/i);
   });
@@ -160,8 +154,6 @@ describe('Projects API', () => {
     const res = await request(app)
       .delete(`/api/projects/${projectId}`)
       .set('Authorization', `Bearer ${token}`);
-
-    console.log('Delete Project Response:', res.body);
 
     expect(res.statusCode).toBe(200);
     expect(res.body.message).toMatch(/deleted/i);
@@ -172,8 +164,6 @@ describe('Projects API', () => {
     const res = await request(app)
       .delete(`/api/projects/${fakeId}`)
       .set('Authorization', `Bearer ${token}`);
-
-    console.log('Delete Non-existent Project Response:', res.body);
 
     expect(res.statusCode).toBe(404);
     expect(res.body.message).toMatch(/not found/i);
